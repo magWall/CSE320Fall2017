@@ -27,5 +27,12 @@
  * @return Refer to homework document for the return value of this function.
  */
 unsigned short validargs(int argc, char **argv) {
-    return 0x8000;
+    if(argc==1) //args = blank , only has bin/hw1
+        return 0;
+    if(argc>1 && **(argv+1)== '-' && *(*(argv+1)+1)=='h' ) //if  2nd arg is '-h' , might need to check the third variable and ensure it's only '-h' as 2nd arg
+        return 0x8000;
+
+
+
+    return 0;
 }

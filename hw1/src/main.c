@@ -20,10 +20,18 @@ int main(int argc, char **argv)
     unsigned short mode;
 
     mode = validargs(argc, argv);
-
+    debug("num args: %d",argc);
     debug("Mode: 0x%X", mode);
+    debug("stuff : %s",* (argv+1) );
 
-    if(mode & 0x8000) {
+
+    if(mode ==0){
+
+        USAGE(*argv, mode); //upon failure, may need to change [mode] to retcode
+        return EXIT_FAILURE;
+    }
+    if(mode & 0x8000) { // if mode & 1000 0000 0000 0000 != 0
+       // printf("good");
         USAGE(*argv, EXIT_SUCCESS);
     }
 
