@@ -29,7 +29,7 @@
 unsigned short validargs(int argc, char **argv) {
     if(argc==1) //args = blank , only has bin/hw1
         return 0;
-    if(argc>1 && **(argv+1)== '-' && *(*(argv+1)+1)=='h' ) //if  2nd arg is '-h' , might need to check the third variable and ensure it's only '-h' as 2nd arg
+    if(argc>1 && **(argv+1)== '-' && *(*(argv+1)+1)=='h' && *(*(argv+1)+2) ==0 ) //if  2nd arg is '-h' and not anything like '-h2'
         return 0x8000;
 
 

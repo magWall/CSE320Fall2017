@@ -23,15 +23,18 @@ int main(int argc, char **argv)
     debug("num args: %d",argc);
     debug("Mode: 0x%X", mode);
     debug("stuff : %s",* (argv+1) );
+    debug("stuff : %s",* (argv+1)+2);
 
 
     if(mode ==0){
 
+        debug("failed: %s", *argv); //check to see if it hits this line
         USAGE(*argv, mode); //upon failure, may need to change [mode] to retcode
         return EXIT_FAILURE;
     }
     if(mode & 0x8000) { // if mode & 1000 0000 0000 0000 != 0
-       // printf("good");
+
+    debug("worked : %s",* (argv+1)+2); //check statement
         USAGE(*argv, EXIT_SUCCESS);
     }
 
