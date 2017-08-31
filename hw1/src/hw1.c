@@ -27,11 +27,42 @@
  * @return Refer to homework document for the return value of this function.
  */
 unsigned short validargs(int argc, char **argv) {
-    if(argc==1) //args = blank , only has bin/hw1
+    unsigned short tmpshort = 0x0000;
+    if(argc==1) //args = blank , only has bin/hw1,  return 0 and exit failure
         return 0;
     if(argc>1 && **(argv+1)== '-' && *(*(argv+1)+1)=='h' && *(*(argv+1)+2) ==0 ) //if  2nd arg is '-h' and not anything like '-h2'
         return 0x8000;
 
+    if(argc>1 && argc<3) //only has -f or -p
+        return 0;
+    if(**(argv+1)== '-' && *(*(argv+1)+1)=='p' && *(*(argv+1)+2) ==0) //for -p cypher
+    {
+        if( !(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) || !(**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) ==0)) //check if correct encrypt/decrypt key
+            return 0;
+        /*code here for checking if d or if e, changing bits*/
+        if(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) //if d, it should be 0010 0000 0000 0000,since F is 0, then we have 0010, or 0x2000
+            tmpshort = tmpshort || 0x2000;
+       //if e, it should be 0000 0000 0000 0000,since F is 0, then we have 0000, or 0x0000 which means don't bitwise or anything
+
+        return tmpshort;
+    }
+    if(**(argv+1)== '-' && *(*(argv+1)+1)=='f' && *(*(argv+1)+2) ==0) // for -f cypher
+    {
+        if( !(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) || !(**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) ==0)) //check if correct encrypt/decrypt key
+            return 0;
+        /*code here for checking if d or if e, changing bits*/
+        if(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) //if d, it should be 0010 0000 0000 0000,since F is 1, then we have 0110, or 0x6000
+            tmpshort = tmpshort || 0x6000;//if d, it should be 0010 0000 0000 0000, but we also need to include F, so it is 0110, or 0x6000
+        else if(**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) ==0) //if e, it should be 0000 0000 0000 0000,since F is 1, then we have 0100, or 0x4000
+            tmpshort = tmpshort || 0x4000;
+
+        return tmpshort;
+    }
+    /*if argc >1, check for -p flag, else check for -f flag
+     *if first passed in arg is not -h, or -p, or -f, then immediately return 0
+     *if first arg is -p, check for -d and -e
+     *if first arg is -f, check for -d and -e
+     */
 
 
     return 0;

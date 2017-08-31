@@ -32,11 +32,12 @@ int main(int argc, char **argv)
         USAGE(*argv, mode); //upon failure, may need to change [mode] to retcode
         return EXIT_FAILURE;
     }
-    if(mode & 0x8000) { // if mode & 1000 0000 0000 0000 != 0
+    if(mode & 0x8000) { // if mode & 1000 0000 0000 0000 != 0, check for help
 
     debug("worked : %s",* (argv+1)+2); //check statement
         USAGE(*argv, EXIT_SUCCESS);
     }
+    /*create a check for mode for p and f*/
 
     return EXIT_SUCCESS;
 }
