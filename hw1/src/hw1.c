@@ -43,6 +43,15 @@ unsigned short validargs(int argc, char **argv) {
         if(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) //if d, it should be 0010 0000 0000 0000,since F is 0, then we have 0010, or 0x2000
             tmpshort = tmpshort || 0x2000;
        //if e, it should be 0000 0000 0000 0000,since F is 0, then we have 0000, or 0x0000 which means don't bitwise or anything
+        /* then check if you have 5, 7, or 9 arguments. If the argc value is not equal to 3, 5, 7 or 9, it is invalid.
+         * bin/hw1 -p -e/-d -k key -r # -c #
+         * has 9 possible arguments if bin/hw1 is included
+         */
+        if( !(argc= 3 || argc==5 || argc ==7 || argc == 9) )
+            return 0x0000;
+        //assume it passes the test, check for all  individual cases
+
+
 
         return tmpshort;
     }
