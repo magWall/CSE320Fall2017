@@ -37,7 +37,7 @@ unsigned short validargs(int argc, char **argv) {
         return 0;
     if(**(argv+1)== '-' && *(*(argv+1)+1)=='p' && *(*(argv+1)+2) ==0) //for -p cypher
     {
-        if( !(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) || !(**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) ==0)) //check if correct encrypt/decrypt key
+        if( ! ((**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) || (**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) ==0)) ) //check if correct encrypt/decrypt key
             return 0;
         /*code here for checking if d or if e, changing bits*/
         if(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) //if d, it should be 0010 0000 0000 0000,since F is 0, then we have 0010, or 0x2000
