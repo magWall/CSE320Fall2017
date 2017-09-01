@@ -48,14 +48,17 @@ unsigned short validargs(int argc, char **argv) {
     }
     if(**(argv+1)== '-' && *(*(argv+1)+1)=='f' && *(*(argv+1)+2) ==0) // for -f cypher
     {
-        if( !(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) || !(**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) ==0)) //check if correct encrypt/decrypt key
+        if( ! ((**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) || (**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) ==0)) ) //check if correct encrypt/decrypt key
+            return 0;
+        if(argc>5) //there can be max 4 arguments here, bin/hw1, -f, -e/-d, -k, key
             return 0;
         /*code here for checking if d or if e, changing bits*/
         if(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) ==0) //if d, it should be 0010 0000 0000 0000,since F is 1, then we have 0110, or 0x6000
             tmpshort = tmpshort || 0x6000;//if d, it should be 0010 0000 0000 0000, but we also need to include F, so it is 0110, or 0x6000
         else if(**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) ==0) //if e, it should be 0000 0000 0000 0000,since F is 1, then we have 0100, or 0x4000
             tmpshort = tmpshort || 0x4000;
-
+        if(argc>=4 && !(**(argv+3) == '-' && *(*(argv+3)+1)=='k') ) //if there's over 4 args, then there should be a -k and a key arg. If the 4th arg is not -k then invalid arg
+            tmpshort = 0x0000;
         return tmpshort;
     }
     /*if argc >1, check for -p flag, else check for -f flag
