@@ -80,26 +80,35 @@ unsigned short validargs(int argc, char **argv) {
         if(argc ==5)
         {
             if( **(argv+3) == '-' && *(*(argv+3)+1)=='k' && *(*(argv+2)+2) =='\0') //default column and row if -k
+            {
                 tmpshort =  tmpshort | 0x00AA;
+                /* CHECK TO SEE IF VALID KEY
+                 *
+                 */
+            }
             else if( **(argv+3) == '-' && *(*(argv+3)+1)=='c' && *(*(argv+2)+2) =='\0') //if -c, pass in column
             {
-                if(isNum(*(argv+4)) //check to see if -c's # arg has no letters, else fail it
+                if(isNum(*(argv+4))) //check to see if -c's # arg has no letters, else fail it
                 {
                     //get col, set row to 10, may need atoui to count full length of arg being passed in
                     int numInDecimal = convertedNum(*(argv+4));
                     //rows and columns must be between 9 and 15 inclusive. if over or under, invalid arg.
                     if(numInDecimal<9 || numInDecimal>15)
+                    {
                         return 0;
+                    }
                     tmpshort = tmpshort|numInDecimal; //bitwise or
                     tmpshort = tmpshort|0xA0; //set row to 10
                 }
                 else
+                {
                     return 0;
+                }
             }
             else if(( **(argv+3) == '-' && *(*(argv+3)+1)=='r' && *(*(argv+2)+2) =='\0'))
             {
                 //get row, set col to 10
-                if(isNum(*(argv+4)) //check to see if -c's # arg has no letters, else fail it
+                if(isNum(*(argv+4))) //check to see if -c's # arg has no letters, else fail it
                 {
                     //get col, set row to 10, may need atoui to count full length of arg being passed in
                     int numInDecimal = convertedNum(*(argv+4));
@@ -110,16 +119,23 @@ unsigned short validargs(int argc, char **argv) {
                     tmpshort = tmpshort|0xA;
                 }
                 else
+                {
                     return 0;
+                }
             }
             else
+            {
                 return 0x0000; //argument invalid
+            }
         }
         else if(argc ==7)
         {
 
         }
         else if(argc==9)
+        {
+
+        }
         // if it is only 3 args, then column and row set to 10
         // if 5 args, check 4th arg, if it's -k, then set col and row to 10 , else if row or col, set that to the number given
         // repeat for 7 and 9
@@ -141,7 +157,13 @@ unsigned short validargs(int argc, char **argv) {
         else if(**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) =='\0') //if e, it should be 0000 0000 0000 0000,since F is 1, then we have 0100, or 0x4000
             tmpshort = tmpshort || 0x4000;
         if(argc>=4 && !(**(argv+3) == '-' && *(*(argv+3)+1)=='k'&& *(*(argv+2)+2) =='\0') ) //if there's over 4 args, then there should be a -k and a key arg. If the 4th arg is not -k then invalid arg
+         {
             tmpshort = 0x0000;
+            /* CHECK TO SEE IF VALID KEY
+             *
+             */
+
+         }
         return tmpshort;
     }
     /*if argc >1, check for -p flag, else check for -f flag
