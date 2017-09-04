@@ -40,6 +40,7 @@ int convertToNum(char *argv)
     }
     return convertedNum;
 }
+
 /**
  * @brief Validates command line arguments passed to the program.
  * @details This function will validate all the arguments passed to the program
@@ -91,7 +92,7 @@ unsigned short validargs(int argc, char **argv) {
                 if(isNum(*(argv+4))) //check to see if -c's # arg has no letters, else fail it
                 {
                     //get col, set row to 10, may need atoui to count full length of arg being passed in
-                    int numInDecimal = convertedNum(*(argv+4));
+                    int numInDecimal = convertToNum(*(argv+4));
                     //rows and columns must be between 9 and 15 inclusive. if over or under, invalid arg.
                     if(numInDecimal<9 || numInDecimal>15)
                     {
@@ -111,7 +112,7 @@ unsigned short validargs(int argc, char **argv) {
                 if(isNum(*(argv+4))) //check to see if -c's # arg has no letters, else fail it
                 {
                     //get col, set row to 10, may need atoui to count full length of arg being passed in
-                    int numInDecimal = convertedNum(*(argv+4));
+                    int numInDecimal = convertToNum(*(argv+4));
                     //rows and columns must be between 9 and 15 inclusive. if over or under, invalid arg.
                     if(numInDecimal<9 || numInDecimal>15)
                         return 0;
