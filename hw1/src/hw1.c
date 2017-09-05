@@ -40,6 +40,25 @@ int convertToNum(char *argv)
     }
     return convertedNum;
 }
+int hasDuplicateCharacter(char *argv)
+{
+    //return 0 if duplicate, 1 otherwise
+    int idx = 0;
+    int idx2 = idx+1;
+    while( *(argv+idx) != '\0')  //basic nested loop to check each character with itself, O(n^2)
+    {
+        while( *(argv+idx2) != '\0')
+        {
+            if( *(argv+idx) == *(argv+idx2) )
+                return 0;
+            idx2++;
+        }
+        idx++;
+        idx2=idx+1;
+    }
+    return 1;
+
+}
 
 /**
  * @brief Validates command line arguments passed to the program.
@@ -86,6 +105,9 @@ unsigned short validargs(int argc, char **argv) {
                 /* CHECK TO SEE IF VALID KEY
                  *
                  */
+                if(hasDuplicateCharacter( *(argv+4)) ==0 )
+                    return 0;
+
             }
             else if( **(argv+3) == '-' && *(*(argv+3)+1)=='c' && *(*(argv+2)+2) =='\0') //if -c, pass in column
             {
@@ -163,6 +185,8 @@ unsigned short validargs(int argc, char **argv) {
             /* CHECK TO SEE IF VALID KEY
              *
              */
+            if(hasDuplicateCharacter( *(argv+4)) ==0 )
+                    return 0;
 
          }
         return tmpshort;
