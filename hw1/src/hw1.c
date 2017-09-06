@@ -82,7 +82,7 @@ int comparePolybiusAlphabetChar(char oneChar)   //boolean 0 = false, 1 = true
 int comparePolybiusAlphabetAll(char *string)    //boolean 0 = false, 1 = true
 {
     int idx=0;
-    while( *(string=idx)!=0)
+    while( *(string+idx)!=0)
     {
         if(comparePolybiusAlphabetChar(*(string+idx)) == 0)
             return 0;
@@ -90,7 +90,7 @@ int comparePolybiusAlphabetAll(char *string)    //boolean 0 = false, 1 = true
     }
     return 1;
 }
-int compareFractionatedMorseChar(char *oneChar)
+int compareFractionatedMorseChar(char oneChar)  //boolean 0 = false, 1 = true
 {
     int idx = 0;
     while( *(fm_alphabet+idx) != '\0')
@@ -101,10 +101,10 @@ int compareFractionatedMorseChar(char *oneChar)
     }
     return 0;
 }
-int compareFractionatedMorseAll(char *string)
+int compareFractionatedMorseAll(char *string)   //boolean 0 = false, 1 = true
 {
     int idx=0;
-    while( *(string=idx)!=0)
+    while( *(string+idx)!=0)
     {
         if(compareFractionatedMorseChar(*(string+idx)) == 0)
             return 0;
@@ -156,10 +156,9 @@ unsigned short validargs(int argc, char **argv) {
             if( **(argv+3) == '-' && *(*(argv+3)+1)=='k' && *(*(argv+2)+2) =='\0') //default column and row if -k
             {
                 tmpshort =  tmpshort | 0x00AA;
-                /* CHECK TO SEE IF VALID KEY
-                 *
-                 */
                 if(hasDuplicateCharacter( *(argv+4)) ==0 )
+                    return 0;
+                if(comparePolybiusAlphabetAll( *(argv+4))== 0)
                     return 0;
 
             }
@@ -242,11 +241,10 @@ unsigned short validargs(int argc, char **argv) {
         if(argc>=4 && !(**(argv+3) == '-' && *(*(argv+3)+1)=='k'&& *(*(argv+2)+2) =='\0') ) //if there's over 4 args, then there should be a -k and a key arg. If the 4th arg is not -k then invalid arg
          {
             tmpshort = 0x0000;
-            /* CHECK TO SEE IF VALID KEY
-             *
-             */
             if(hasDuplicateCharacter( *(argv+4)) ==0 )
-                    return 0;
+                return 0;
+            if(compareFractionatedMorseAll( *(argv+4))== 0)
+                return 0;
 
          }
         return tmpshort;
