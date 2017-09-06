@@ -151,6 +151,10 @@ unsigned short validargs(int argc, char **argv) {
          */
         if( !(argc= 3 || argc==5 || argc ==7 || argc == 9) ) //invalid # of args if doesn't pass
             return 0x0000;
+        if(argc ==3 ) //default col/row = 10
+        {
+            tmpshort = tmpshort | 0x00AA;
+        }
         if(argc ==5)
         {
             if( **(argv+3) == '-' && *(*(argv+3)+1)=='k' && *(*(argv+2)+2) =='\0') //default column and row if -k
