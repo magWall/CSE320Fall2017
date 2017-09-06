@@ -59,7 +59,59 @@ int hasDuplicateCharacter(char *argv)
     return 1;
 
 }
-
+int numChars(char *string)
+{
+    int numCharsRead = 0;
+    while( *(string+numCharsRead) != '\0')
+    {
+        numCharsRead++;
+    }
+    return numCharsRead;
+}
+int comparePolybiusAlphabetChar(char oneChar)   //boolean 0 = false, 1 = true
+{
+    int idx = 0;
+    while( *(polybius_alphabet+idx) != '\0')
+    {
+        if(oneChar == *(polybius_alphabet+idx))
+            return 1;
+        idx++;
+    }
+    return 0;
+}
+int comparePolybiusAlphabetAll(char *string)    //boolean 0 = false, 1 = true
+{
+    int idx=0;
+    while( *(string=idx)!=0)
+    {
+        if(comparePolybiusAlphabetChar(*(string+idx)) == 0)
+            return 0;
+        idx++;
+    }
+    return 1;
+}
+int compareFractionatedMorseChar(char *oneChar)
+{
+    int idx = 0;
+    while( *(fm_alphabet+idx) != '\0')
+    {
+        if(oneChar == *(fm_alphabet+idx))
+            return 1;
+        idx++;
+    }
+    return 0;
+}
+int compareFractionatedMorseAll(char *string)
+{
+    int idx=0;
+    while( *(string=idx)!=0)
+    {
+        if(compareFractionatedMorseChar(*(string+idx)) == 0)
+            return 0;
+        idx++;
+    }
+    return 1;
+}
 /**
  * @brief Validates command line arguments passed to the program.
  * @details This function will validate all the arguments passed to the program
@@ -85,6 +137,8 @@ unsigned short validargs(int argc, char **argv) {
         return 0;
     if(**(argv+1)== '-' && *(*(argv+1)+1)=='p' && *(*(argv+1)+2) =='\0') //for -p cypher
     {
+        int rowLength = 10;
+        int colLength = 10;
         if( ! ((**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) =='\0') || (**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) =='\0')) ) //check if correct encrypt/decrypt key
             return 0;
         /*code here for checking if d or if e, changing bits*/
@@ -120,6 +174,9 @@ unsigned short validargs(int argc, char **argv) {
                     {
                         return 0;
                     }
+                    colLength = numInDecimal;
+                    if(colLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
+                        return 0;
                     tmpshort = tmpshort|numInDecimal; //bitwise or
                     tmpshort = tmpshort|0xA0; //set row to 10
                 }
@@ -138,6 +195,9 @@ unsigned short validargs(int argc, char **argv) {
                     //rows and columns must be between 9 and 15 inclusive. if over or under, invalid arg.
                     if(numInDecimal<9 || numInDecimal>15)
                         return 0;
+                    rowLength = numInDecimal;
+                    if(rowLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
+                        return 0;
                     tmpshort = tmpshort| (numInDecimal<<4); //shift left by 4 and then bitwise or
                     tmpshort = tmpshort|0xA;
                 }
@@ -148,7 +208,7 @@ unsigned short validargs(int argc, char **argv) {
             }
             else
             {
-                return 0x0000; //argument invalid
+                return 0x0000; //argument invalid for arg5
             }
         }
         else if(argc ==7)
