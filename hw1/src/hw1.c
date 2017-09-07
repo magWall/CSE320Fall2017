@@ -139,6 +139,10 @@ unsigned short validargs(int argc, char **argv) {
     {
         int rowLength = 10;
         int colLength = 10;
+        int cArg =0;    //decided to use flags because since optional args can be placed in any order, there will be a lot of repositioning conditional statements to handle
+        int rArg =0;
+        int kArg =0;
+
         if( ! ((**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) =='\0') || (**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) =='\0')) ) //check if correct encrypt/decrypt key
             return 0;
         /*code here for checking if d or if e, changing bits*/
@@ -155,22 +159,22 @@ unsigned short validargs(int argc, char **argv) {
         {
             tmpshort = tmpshort | 0x00AA;
         }
-        else if(argc ==5)
+        else if(argc >=5)
         {
             if( **(argv+3) == '-' && *(*(argv+3)+1)=='k' && *(*(argv+2)+2) =='\0') //default column and row if -k
             {
-                tmpshort =  tmpshort | 0x00AA;
                 if(hasDuplicateCharacter( *(argv+4)) ==0 )
                     return 0;
                 if(comparePolybiusAlphabetAll( *(argv+4))== 0)
                     return 0;
                 //true if passses tests, pass string in
                 key = *(argv+4);
+                kArg =1; //flag raised
 
             }
-            else if( **(argv+3) == '-' && *(*(argv+3)+1)=='c' && *(*(argv+2)+2) =='\0') //if -c, pass in column
+            else if( **(argv+3) == '-' && *(*(argv+3)+1)=='c' && *(*(argv+3)+2) =='\0') //if -c, pass in column
             {
-                if(isNum(*(argv+4))) //check to see if -c's # arg has no letters, else fail it
+                if(isNum(*(argv+4))) //check to see if -c's # arg has only numbers, else fail it
                 {
                     //get col, set row to 10, may need atoui to count full length of arg being passed in
                     int numInDecimal = convertToNum(*(argv+4));
@@ -183,17 +187,17 @@ unsigned short validargs(int argc, char **argv) {
                     if(colLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
                         return 0;
                     tmpshort = tmpshort|numInDecimal; //bitwise or
-                    tmpshort = tmpshort|0xA0; //set row to 10
+                    cFlag=1; //cFlag raised
                 }
                 else
                 {
-                    return 0;
+                    return 0; // not a num
                 }
             }
-            else if(( **(argv+3) == '-' && *(*(argv+3)+1)=='r' && *(*(argv+2)+2) =='\0'))
+            else if( **(argv+3) == '-' && *(*(argv+3)+1)=='r' && *(*(argv+3)+2) =='\0' )
             {
                 //get row, set col to 10
-                if(isNum(*(argv+4))) //check to see if -c's # arg has no letters, else fail it
+                if(isNum(*(argv+4))) //check to see if -c's # arg has only numbers, else fail it
                 {
                     //get col, set row to 10, may need atoui to count full length of arg being passed in
                     int numInDecimal = convertToNum(*(argv+4));
@@ -204,11 +208,11 @@ unsigned short validargs(int argc, char **argv) {
                     if(rowLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
                         return 0;
                     tmpshort = tmpshort| (numInDecimal<<4); //shift left by 4 and then bitwise or
-                    tmpshort = tmpshort|0xA;
+                    rFlag=1; //rFlag raised
                 }
                 else
                 {
-                    return 0;
+                    return 0; // not a num
                 }
             }
             else
@@ -216,18 +220,137 @@ unsigned short validargs(int argc, char **argv) {
                 return 0x0000; //argument invalid for arg5 or repeated args aka args not -k -r -c
             }
         }
-        else if(argc ==7)
-        {
 
-        }
-        else if(argc==9)
+        if(argc >=7)
         {
+            if( **(argv+5) == '-' && *(*(argv+5)+1)=='k' && *(*(argv+5)+2) =='\0' && kArg==0) //default column and row if -k
+            {
+                if(hasDuplicateCharacter( *(argv+6)) ==0 )
+                    return 0;
+                if(comparePolybiusAlphabetAll( *(argv+6))== 0)
+                    return 0;
+                //true if passses tests, pass string in
+                key = *(argv+6);
+                kArg =1; //flag raised
 
+            }
+            else if( **(argv+5) == '-' && *(*(argv+5)+1)=='c' && *(*(argv+5)+2) =='\0' && cArg==0) //if -c, pass in column
+            {
+                if(isNum(*(argv+6))) //check to see if -c's # arg has only numbers, else fail it
+                {
+                    //get col, set row to 10, may need atoui to count full length of arg being passed in
+                    int numInDecimal = convertToNum(*(argv+6));
+                    //rows and columns must be between 9 and 15 inclusive. if over or under, invalid arg.
+                    if(numInDecimal<9 || numInDecimal>15)
+                    {
+                        return 0;
+                    }
+                    colLength = numInDecimal;
+                    if(colLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
+                        return 0;
+                    tmpshort = tmpshort|numInDecimal; //bitwise or
+                    cFlag=1; //cFlag raised
+                }
+                else
+                {
+                    return 0; // not a num
+                }
+            }
+            else if( **(argv+5) == '-' && *(*(argv+5)+1)=='r' && *(*(argv+5)+2) =='\0' &&rArg==0)
+            {
+                //get row, set col to 10
+                if(isNum(*(argv+6))) //check to see if -c's # arg has only numbers, else fail it
+                {
+                    //get col, set row to 10, may need atoui to count full length of arg being passed in
+                    int numInDecimal = convertToNum(*(argv+6));
+                    //rows and columns must be between 9 and 15 inclusive. if over or under, invalid arg.
+                    if(numInDecimal<9 || numInDecimal>15)
+                        return 0;
+                    rowLength = numInDecimal;
+                    if(rowLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
+                        return 0;
+                    tmpshort = tmpshort| (numInDecimal<<4); //shift left by 4 and then bitwise or
+                    rFlag=1; //rFlag raised
+                }
+                else
+                {
+                    return 0; // not a num
+                }
+            }
+            else
+            {
+                return 0x0000; //argument invalid for arg5 or repeated args aka args not -k -r -c
+            }
         }
-        // if it is only 3 args, then column and row set to 10
-        // if 5 args, check 4th arg, if it's -k, then set col and row to 10 , else if row or col, set that to the number given
-        // repeat for 7 and 9
-        //assume it passes the test, check for all  individual cases
+        if(argc==9)
+        {
+            if( **(argv+7) == '-' && *(*(argv+7)+1)=='k' && *(*(argv+7)+2) =='\0' && kArg==0) //default column and row if -k
+            {
+                if(hasDuplicateCharacter( *(argv+8)) ==0 )
+                    return 0;
+                if(comparePolybiusAlphabetAll( *(argv+8))== 0)
+                    return 0;
+                //true if passses tests, pass string in
+                key = *(argv+8);
+                kArg =1; //flag raised
+
+            }
+            else if( **(argv+7) == '-' && *(*(argv+7)+1)=='c' && *(*(argv+7)+2) =='\0' && cArg==0) //if -c, pass in column
+            {
+                if(isNum(*(argv+8))) //check to see if -c's # arg has only numbers, else fail it
+                {
+                    //get col, set row to 10, may need atoui to count full length of arg being passed in
+                    int numInDecimal = convertToNum(*(argv+8));
+                    //rows and columns must be between 9 and 15 inclusive. if over or under, invalid arg.
+                    if(numInDecimal<9 || numInDecimal>15)
+                    {
+                        return 0;
+                    }
+                    colLength = numInDecimal;
+                    if(colLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
+                        return 0;
+                    tmpshort = tmpshort|numInDecimal; //bitwise or
+                    cFlag=1; //cFlag raised
+                }
+                else
+                {
+                    return 0; // not a num
+                }
+            }
+            else if( **(argv+7) == '-' && *(*(argv+7)+1)=='r' && *(*(argv+7)+2) =='\0' &&rArg==0)
+            {
+                //get row, set col to 10
+                if(isNum(*(argv+8))) //check to see if -c's # arg has only numbers, else fail it
+                {
+                    //get col, set row to 10, may need atoui to count full length of arg being passed in
+                    int numInDecimal = convertToNum(*(argv+8));
+                    //rows and columns must be between 9 and 15 inclusive. if over or under, invalid arg.
+                    if(numInDecimal<9 || numInDecimal>15)
+                        return 0;
+                    rowLength = numInDecimal;
+                    if(rowLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
+                        return 0;
+                    tmpshort = tmpshort| (numInDecimal<<4); //shift left by 4 and then bitwise or
+                    rFlag=1; //rFlag raised
+                }
+                else
+                {
+                    return 0; // not a num
+                }
+            }
+            else
+            {
+                return 0x0000; //argument invalid for arg5 or repeated args aka args not -k -r -c
+            }
+        }
+        if(cArg ==0)
+        {
+            tmpshort = tmpshort |0xA;
+        }
+        if(rArg ==0)
+        {
+            tmpshort = tmpshort | 0xA0;
+        }
 
 
 
