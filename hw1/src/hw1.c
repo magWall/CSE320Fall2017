@@ -244,17 +244,25 @@ unsigned short validargs(int argc, char **argv) {
             tmpshort = tmpshort | 0x6000;//if d, it should be 0010 0000 0000 0000, but we also need to include F, so it is 0110, or 0x6000
         else if(**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) =='\0') //if e, it should be 0000 0000 0000 0000,since F is 1, then we have 0100, or 0x4000
             tmpshort = tmpshort || 0x4000;
-        if(argc>=4 && !(**(argv+3) == '-' && *(*(argv+3)+1)=='k'&& *(*(argv+2)+2) =='\0') ) //if there's over 4 args, then there should be a -k and a key arg. If the 4th arg is not -k then invalid arg
-         {
-            tmpshort = 0x0000;
-            if(hasDuplicateCharacter( *(argv+4)) ==0 )
+        else
+            return 0;
+        if(argc>3) //if argc >3, then check for -k args, if argc ==4, then fail. if argc >5, fail. If not -k, fail.
+        {
+            if(argc==5 && (**(argv+3) == '-' && *(*(argv+3)+1)=='k'&& *(*(argv+2)+2) =='\0') ) //if there's over 4 args, then there should be a -k and a key arg. If the 4th arg is not -k then invalid arg
+            {
+                if(hasDuplicateCharacter( *(argv+4)) ==0 )
+                    return 0;
+                if(compareFractionatedMorseAll( *(argv+4))== 0)
+                    return 0;
+                //true if passses tests, pass string in
+                key = *(argv+4);
+            }
+             else
+            {
                 return 0;
-            if(compareFractionatedMorseAll( *(argv+4))== 0)
-                return 0;
-            //true if passses tests, pass string in
-            key = *(argv+4);
+            }
+        }
 
-         }
         return tmpshort;
     }
     /*if argc >1, check for -p flag, else check for -f flag
