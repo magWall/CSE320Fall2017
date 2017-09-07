@@ -15,7 +15,6 @@
 
 
 
-
 int isNum(char *argv) //0 is false, anything else is true according to C convention
 {
     int idx=0;
@@ -112,6 +111,7 @@ int compareFractionatedMorseAll(char *string)   //boolean 0 = false, 1 = true
     }
     return 1;
 }
+
 /**
  * @brief Validates command line arguments passed to the program.
  * @details This function will validate all the arguments passed to the program
@@ -133,7 +133,7 @@ unsigned short validargs(int argc, char **argv) {
     if(argc>1 && **(argv+1)== '-' && *(*(argv+1)+1)=='h' && *(*(argv+1)+2) =='\0' ) //if  2nd arg is '-h' and not anything like '-h2'
         return 0x8000;
 
-    if(argc>1 && argc<3) //only has -f or -p
+    if(argc>=1 && argc<3) //only has -f or -p
         return 0;
     if(**(argv+1)== '-' && *(*(argv+1)+1)=='p' && *(*(argv+1)+2) =='\0') //for -p cypher
     {
@@ -149,13 +149,13 @@ unsigned short validargs(int argc, char **argv) {
          * bin/hw1 -p -e/-d -k key -r # -c #
          * has 9 possible arguments if bin/hw1 is included
          */
-        if( !(argc= 3 || argc==5 || argc ==7 || argc == 9) ) //invalid # of args if doesn't pass
+        if( !(argc== 3 || argc==5 || argc ==7 || argc == 9) || argc>9 ) //invalid # of args if doesn't pass
             return 0x0000;
         if(argc ==3 ) //default col/row = 10
         {
             tmpshort = tmpshort | 0x00AA;
         }
-        if(argc ==5)
+        else if(argc ==5)
         {
             if( **(argv+3) == '-' && *(*(argv+3)+1)=='k' && *(*(argv+2)+2) =='\0') //default column and row if -k
             {
@@ -164,6 +164,8 @@ unsigned short validargs(int argc, char **argv) {
                     return 0;
                 if(comparePolybiusAlphabetAll( *(argv+4))== 0)
                     return 0;
+                //true if passses tests, pass string in
+                key = *(argv+4);
 
             }
             else if( **(argv+3) == '-' && *(*(argv+3)+1)=='c' && *(*(argv+2)+2) =='\0') //if -c, pass in column
@@ -211,7 +213,7 @@ unsigned short validargs(int argc, char **argv) {
             }
             else
             {
-                return 0x0000; //argument invalid for arg5
+                return 0x0000; //argument invalid for arg5 or repeated args aka args not -k -r -c
             }
         }
         else if(argc ==7)
@@ -249,6 +251,8 @@ unsigned short validargs(int argc, char **argv) {
                 return 0;
             if(compareFractionatedMorseAll( *(argv+4))== 0)
                 return 0;
+            //true if passses tests, pass string in
+            key = *(argv+4);
 
          }
         return tmpshort;

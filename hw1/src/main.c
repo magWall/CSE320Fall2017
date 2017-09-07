@@ -38,7 +38,8 @@ int main(int argc, char **argv)
         USAGE(*argv, EXIT_SUCCESS);
     }
     /*create a check for mode for p and f*/
-
+    debug("argv+4: %s",*(argv+4) );
+    debug("key: %s, %p",key,key);
     return EXIT_SUCCESS;
 }
 
