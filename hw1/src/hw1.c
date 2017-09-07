@@ -39,6 +39,7 @@ int convertToNum(char *argv)
     }
     return convertedNum;
 }
+
 int hasDuplicateCharacter(char *argv)
 {
     //return 0 if duplicate, 1 otherwise
@@ -342,8 +343,6 @@ unsigned short validargs(int argc, char **argv) {
         if(colLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
             return 0;
 
-
-
         return tmpshort;
     }
     if(**(argv+1)== '-' && *(*(argv+1)+1)=='f' && *(*(argv+1)+2) =='\0') // for -f cypher
@@ -378,12 +377,6 @@ unsigned short validargs(int argc, char **argv) {
 
         return tmpshort;
     }
-    /*if argc >1, check for -p flag, else check for -f flag
-     *if first passed in arg is not -h, or -p, or -f, then immediately return 0
-     *if first arg is -p, check for -d and -e
-     *if first arg is -f, check for -d and -e
-     */
-
 
     return 0;
 }

@@ -2,6 +2,7 @@
 
 #include "hw1.h"
 #include "debug.h"
+#include <stdio.h>
 
 #ifdef _STRING_H
 #error "Do not #include <string.h>. You will get a ZERO."
@@ -36,10 +37,44 @@ int main(int argc, char **argv)
 
     debug("worked : %s",* (argv+1)+2); //check statement
         USAGE(*argv, EXIT_SUCCESS);
+        return EXIT_SUCCESS;
     }
     /*create a check for mode for p and f*/
     debug("argv+4: %s",*(argv+4) );
     debug("key: %s, %p",key,key);
+    int rowLength = mode & 0xF0;
+    int colLength = mode & 0xF;
+    //create a pointer array here
+    if( (mode>>13) &0x1 == 0) //if poly cypher, 0[0]00 0000 0000 0000
+    {
+        int colNum =0;
+        int rowNum =0;
+        int idxOfAlphabet = 0;
+        while(rowNum<rowLength)
+        {
+            while(rowNum<colLength)
+            {
+                if(idxOfAlphabet < numChars(polybius_alphabet))
+                {
+                    *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
+                    idxOfAlphabet++;
+                }
+                else
+                {
+                    *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum) = '\0';
+                }
+                colNum++;
+            }
+            colNum=0;
+            rowNum++;
+        }
+
+    }
+    else //fm
+    {
+
+    }
+
     return EXIT_SUCCESS;
 }
 
