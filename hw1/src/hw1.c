@@ -185,7 +185,7 @@ unsigned short validargs(int argc, char **argv) {
                     }
                     colLength = numInDecimal;
                     tmpshort = tmpshort|numInDecimal; //bitwise or
-                    cFlag=1; //cFlag raised
+                    cArg=1; //cFlag raised
                 }
                 else
                 {
@@ -204,7 +204,7 @@ unsigned short validargs(int argc, char **argv) {
                         return 0;
                     rowLength = numInDecimal;
                     tmpshort = tmpshort| (numInDecimal<<4); //shift left by 4 and then bitwise or
-                    rFlag=1; //rFlag raised
+                    rArg=1; //rFlag raised
                 }
                 else
                 {
@@ -243,7 +243,7 @@ unsigned short validargs(int argc, char **argv) {
                     }
                     colLength = numInDecimal;
                     tmpshort = tmpshort|numInDecimal; //bitwise or
-                    cFlag=1; //cFlag raised
+                    cArg=1; //cFlag raised
                 }
                 else
                 {
@@ -262,7 +262,7 @@ unsigned short validargs(int argc, char **argv) {
                         return 0;
                     rowLength = numInDecimal;
                     tmpshort = tmpshort| (numInDecimal<<4); //shift left by 4 and then bitwise or
-                    rFlag=1; //rFlag raised
+                    rArg=1; //rFlag raised
                 }
                 else
                 {
@@ -300,7 +300,7 @@ unsigned short validargs(int argc, char **argv) {
                     }
                     colLength = numInDecimal;
                     tmpshort = tmpshort|numInDecimal; //bitwise or
-                    cFlag=1; //cFlag raised
+                    cArg=1; //cFlag raised
                 }
                 else
                 {
@@ -319,7 +319,7 @@ unsigned short validargs(int argc, char **argv) {
                         return 0;
                     rowLength = numInDecimal;
                     tmpshort = tmpshort| (numInDecimal<<4); //shift left by 4 and then bitwise or
-                    rFlag=1; //rFlag raised
+                    rArg=1; //rFlag raised
                 }
                 else
                 {
