@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     int rowLength = mode & 0xF0;
     int colLength = mode & 0xF;
     //create a pointer array here
-    if( (mode>>13) &0x1 == 0) //if poly cypher, 0[0]00 0000 0000 0000
+    if( ((mode>>13) & (0x1)) == 0) //if poly cypher, 0[0]00 0000 0000 0000
     {
         int colNum =0;
         int rowNum =0;
