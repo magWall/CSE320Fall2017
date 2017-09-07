@@ -184,8 +184,6 @@ unsigned short validargs(int argc, char **argv) {
                         return 0;
                     }
                     colLength = numInDecimal;
-                    if(colLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
-                        return 0;
                     tmpshort = tmpshort|numInDecimal; //bitwise or
                     cFlag=1; //cFlag raised
                 }
@@ -205,8 +203,6 @@ unsigned short validargs(int argc, char **argv) {
                     if(numInDecimal<9 || numInDecimal>15)
                         return 0;
                     rowLength = numInDecimal;
-                    if(rowLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
-                        return 0;
                     tmpshort = tmpshort| (numInDecimal<<4); //shift left by 4 and then bitwise or
                     rFlag=1; //rFlag raised
                 }
@@ -246,8 +242,6 @@ unsigned short validargs(int argc, char **argv) {
                         return 0;
                     }
                     colLength = numInDecimal;
-                    if(colLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
-                        return 0;
                     tmpshort = tmpshort|numInDecimal; //bitwise or
                     cFlag=1; //cFlag raised
                 }
@@ -267,8 +261,6 @@ unsigned short validargs(int argc, char **argv) {
                     if(numInDecimal<9 || numInDecimal>15)
                         return 0;
                     rowLength = numInDecimal;
-                    if(rowLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
-                        return 0;
                     tmpshort = tmpshort| (numInDecimal<<4); //shift left by 4 and then bitwise or
                     rFlag=1; //rFlag raised
                 }
@@ -307,8 +299,6 @@ unsigned short validargs(int argc, char **argv) {
                         return 0;
                     }
                     colLength = numInDecimal;
-                    if(colLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
-                        return 0;
                     tmpshort = tmpshort|numInDecimal; //bitwise or
                     cFlag=1; //cFlag raised
                 }
@@ -328,8 +318,6 @@ unsigned short validargs(int argc, char **argv) {
                     if(numInDecimal<9 || numInDecimal>15)
                         return 0;
                     rowLength = numInDecimal;
-                    if(rowLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
-                        return 0;
                     tmpshort = tmpshort| (numInDecimal<<4); //shift left by 4 and then bitwise or
                     rFlag=1; //rFlag raised
                 }
@@ -351,6 +339,8 @@ unsigned short validargs(int argc, char **argv) {
         {
             tmpshort = tmpshort | 0xA0;
         }
+        if(colLength * rowLength < numChars(polybius_alphabet)) //if row*col length < alphabet characters, fail
+            return 0;
 
 
 
