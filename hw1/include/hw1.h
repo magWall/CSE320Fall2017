@@ -12,4 +12,5 @@ int comparePolybiusAlphabetChar(char oneChar); //checks 1 char to see in -p alph
 int comparePolybiusAlphabetAll(char *string); //checks to see if all chars in given string in polybius alphabet
 int compareFractionatedMorseChar(char oneChar); //checks 1 char to see in -f alphabet
 int compareFractionatedMorseAll(char *string); //checks to see if all chars in given string in -f alphabet
+int findCharPolybiusTable(char oneChar); //returns position of char in polybius table
 #endif

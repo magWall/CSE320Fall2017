@@ -52,7 +52,7 @@ int main(int argc, char **argv)
         int idxOfAlphabet = 0;
         while(rowNum<rowLength)
         {
-            while(rowNum<colLength)
+            while(colNum<colLength)
             {
                 if(idxOfAlphabet < numChars(polybius_alphabet))
                 {
@@ -67,6 +67,16 @@ int main(int argc, char **argv)
             }
             colNum=0;
             rowNum++;
+        }
+
+        char inputChar = ' ';
+        while( (inputChar = getchar())!=EOF)
+        {
+            if (comparePolybiusAlphabetChar(inputChar)==0)
+            {
+                return EXIT_FAILURE; //stop and end
+            }
+            //then function call to check if valid input and run encryption/decryption based on mode
         }
 
     }

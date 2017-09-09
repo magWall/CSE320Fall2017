@@ -112,7 +112,11 @@ int compareFractionatedMorseAll(char *string)   //boolean 0 = false, 1 = true
     }
     return 1;
 }
+int findCharPolybiusTable(char oneChar)
+{
 
+    return 0; //placeholder
+}
 /**
  * @brief Validates command line arguments passed to the program.
  * @details This function will validate all the arguments passed to the program
