@@ -3,6 +3,9 @@
 #include "hw1.h"
 #include "debug.h"
 #include <stdio.h>
+extern FILE *stdin;
+extern FILE *stdout;
+extern FILE *stderr;
 
 #ifdef _STRING_H
 #error "Do not #include <string.h>. You will get a ZERO."
@@ -47,36 +50,47 @@ int main(int argc, char **argv)
     //create a pointer array here
     if( ((mode>>13) & (0x1)) == 0) //if poly cypher, 0[0]00 0000 0000 0000
     {
-        int colNum =0;
-        int rowNum =0;
-        int idxOfAlphabet = 0;
-        while(rowNum<rowLength)
-        {
-            while(colNum<colLength)
+       // if(key == NULL)
+       // {
+            int colNum =0;
+            int rowNum =0;
+            int idxOfAlphabet = 0;
+            while(rowNum<rowLength)
             {
-                if(idxOfAlphabet < numChars(polybius_alphabet))
+                while(colNum<colLength)
                 {
-                    *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
-                    idxOfAlphabet++;
+                    if(idxOfAlphabet < numChars(polybius_alphabet))
+                    {
+                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
+                        idxOfAlphabet++;
+                    }
+                    else
+                    {
+                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum) = '\0';
+                    }
+                    colNum++;
+                }
+                colNum=0;
+                rowNum++;
+            }
+            char inputChar = ' ';
+            while( (inputChar = getchar())!=EOF)
+            {
+                if(inputChar== ' ' || inputChar == '\n' || inputChar == '\t')
+                {
+                    printf("%c",inputChar);
+                }
+                else if (comparePolybiusAlphabetChar(inputChar)==0)
+                {
+                    return EXIT_FAILURE; //stop and end
                 }
                 else
                 {
-                    *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum) = '\0';
+                    char* charPos = findCharPolybiusTable(inputChar, colLength, rowLength);
+                    printf("%s",charPos);
+                    //then function call to check if valid input and run encryption/decryption based on mode
                 }
-                colNum++;
-            }
-            colNum=0;
-            rowNum++;
-        }
-
-        char inputChar = ' ';
-        while( (inputChar = getchar())!=EOF)
-        {
-            if (comparePolybiusAlphabetChar(inputChar)==0)
-            {
-                return EXIT_FAILURE; //stop and end
-            }
-            //then function call to check if valid input and run encryption/decryption based on mode
+          //  }
         }
 
     }

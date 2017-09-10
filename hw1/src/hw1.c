@@ -34,7 +34,7 @@ int convertToNum(char *argv)
     while(*(argv+idx) != '\0') // '\0' = null character
     {
         convertedNum=convertedNum*10;
-        convertedNum+=*(argv+idx);
+        convertedNum+=*(argv+idx)-48;
         idx++;
     }
     return convertedNum;
@@ -112,10 +112,44 @@ int compareFractionatedMorseAll(char *string)   //boolean 0 = false, 1 = true
     }
     return 1;
 }
-int findCharPolybiusTable(char oneChar)
+char* findCharPolybiusTable(char oneChar, int colLen, int rowLen)
 {
+    int colNum =0;
+    int rowNum =0;
+    long space;
+    char* tmpVar=(char*)&space;
+    while(rowNum<rowLen)
+    {
+        while(colNum<colLen)
+        {
+            if(*(polybius_table + sizeof(char)*colNum +sizeof(char)*colLen*rowNum)==oneChar)
+            {
+                if(rowNum>=10)
+                {
+                    *tmpVar=(char)(rowNum+55);
+                }
+                else
+                {
+                    *tmpVar=(char)(rowNum+48);
+                }
 
-    return 0; //placeholder
+                if(colNum>=10)
+                {
+                    *(tmpVar+1)=(char)(colNum+55);
+                }
+                else
+                {
+                    *(tmpVar+1)=(char)(colNum+48);
+                }
+                *(tmpVar+2)='\0';
+                return tmpVar; //returns row then col as a 2 digit number (row,col)
+            }
+            colNum++;
+        }
+        colNum=0;
+        rowNum++;
+    }
+    return "invalid arg"; //cannot find it if -1
 }
 /**
  * @brief Validates command line arguments passed to the program.
