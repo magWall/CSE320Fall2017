@@ -68,6 +68,27 @@ int numChars(char *string)
     }
     return numCharsRead;
 }
+
+int numCharsConst(const char *string)
+{
+    int numCharsRead = 0;
+    while( *(string+numCharsRead) != '\0')
+    {
+        numCharsRead++;
+    }
+    return numCharsRead;
+}
+int compareKey(char oneChar)
+{
+    int idx= 0;
+    while(*(key+idx)!= '\0')
+    {
+        if( *(key+idx)== oneChar)
+            return 1;
+        idx++;
+    }
+    return 0;
+}
 int comparePolybiusAlphabetChar(char oneChar)   //boolean 0 = false, 1 = true
 {
     int idx = 0;
