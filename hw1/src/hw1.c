@@ -439,3 +439,107 @@ unsigned short validargs(int argc, char **argv) {
 
     return 0;
 }
+int polybius_encrypt(int rowLength, int colLength)
+{
+    if(key == NULL)
+        {
+            int colNum =0;
+            int rowNum =0;
+            int idxOfAlphabet = 0;
+            while(rowNum<rowLength)
+            {
+                while(colNum<colLength)
+                {
+                    if(idxOfAlphabet < numChars(polybius_alphabet))
+                    {
+                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
+                        idxOfAlphabet++;
+                    }
+                    else
+                    {
+                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum) = '\0';
+                    }
+                    colNum++;
+                }
+                colNum=0;
+                rowNum++;
+            }
+            char inputChar = ' ';
+            while( (inputChar = getchar())!=EOF)
+            {
+                if(inputChar== ' ' || inputChar == '\n' || inputChar == '\t')
+                {
+                    printf("%c",inputChar);
+                }
+                else if (comparePolybiusAlphabetChar(inputChar)==0)
+                {
+                    return -1; //stop and end
+                }
+                else
+                {
+                    char* charPos = findCharPolybiusTable(inputChar, colLength, rowLength);
+                    printf("%s",charPos);
+                    //then function call to check if valid input and run encryption/decryption based on mode
+                }
+            }
+        }
+        else
+        {
+            int colNum =0;
+            int rowNum =0;
+            int idxOfAlphabet = 0;
+            int keyLength = numCharsConst(key);
+            int keyNum =0;
+            while(rowNum<rowLength)
+            {
+                while(colNum<colLength)
+                {
+                    if(idxOfAlphabet < numChars(polybius_alphabet))
+                    {
+                        if(keyNum<keyLength)
+                        {
+                            *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(key+keyNum);
+                            keyNum++;
+                            colNum++;
+                        }
+                        else
+                        {
+                            if(compareKey(*(polybius_alphabet+idxOfAlphabet)) == 0)
+                            {
+                                *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
+                                colNum++;
+                            }
+                            idxOfAlphabet++;
+                        }
+
+                    }
+                    else
+                    {
+                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum) = '\0';
+                        colNum++;
+                    }
+                }
+                colNum=0;
+                rowNum++;
+            }
+            char inputChar = ' ';
+            while( (inputChar = getchar())!=EOF)
+            {
+                if(inputChar== ' ' || inputChar == '\n' || inputChar == '\t')
+                {
+                    printf("%c",inputChar);
+                }
+                else if (comparePolybiusAlphabetChar(inputChar)==0)
+                {
+                    return -1; //stop and end
+                }
+                else
+                {
+                    char* charPos = findCharPolybiusTable(inputChar, colLength, rowLength);
+                    printf("%s",charPos);
+                    //then function call to check if valid input and run encryption/decryption based on mode
+                }
+            }
+        }
+        return 1;
+}

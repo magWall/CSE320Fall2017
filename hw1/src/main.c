@@ -50,106 +50,14 @@ int main(int argc, char **argv)
     //create a pointer array here
     if( ((mode>>13) & (0x1)) == 0) //if poly cypher, 0[0]00 0000 0000 0000
     {
-        if(key == NULL)
+        if( ((mode>>12)& (0x1)) == 0) //encrypt
         {
-            int colNum =0;
-            int rowNum =0;
-            int idxOfAlphabet = 0;
-            while(rowNum<rowLength)
+            if(polybius_encrypt(rowLength, colLength) ==-1)
             {
-                while(colNum<colLength)
-                {
-                    if(idxOfAlphabet < numChars(polybius_alphabet))
-                    {
-                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
-                        idxOfAlphabet++;
-                    }
-                    else
-                    {
-                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum) = '\0';
-                    }
-                    colNum++;
-                }
-                colNum=0;
-                rowNum++;
-            }
-            char inputChar = ' ';
-            while( (inputChar = getchar())!=EOF)
-            {
-                if(inputChar== ' ' || inputChar == '\n' || inputChar == '\t')
-                {
-                    printf("%c",inputChar);
-                }
-                else if (comparePolybiusAlphabetChar(inputChar)==0)
-                {
-                    return EXIT_FAILURE; //stop and end
-                }
-                else
-                {
-                    char* charPos = findCharPolybiusTable(inputChar, colLength, rowLength);
-                    printf("%s",charPos);
-                    //then function call to check if valid input and run encryption/decryption based on mode
-                }
+                return EXIT_FAILURE;
             }
         }
-        else
-        {
-            int colNum =0;
-            int rowNum =0;
-            int idxOfAlphabet = 0;
-            int keyLength = numCharsConst(key);
-            int keyNum =0;
-            while(rowNum<rowLength)
-            {
-                while(colNum<colLength)
-                {
-                    if(idxOfAlphabet < numChars(polybius_alphabet))
-                    {
-                        if(keyNum<keyLength)
-                        {
-                            *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(key+keyNum);
-                            keyNum++;
-                            colNum++;
-                        }
-                        else
-                        {
-                            if(compareKey(*(polybius_alphabet+idxOfAlphabet)) == 0)
-                            {
-                                *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
-                                colNum++;
-                            }
-                            idxOfAlphabet++;
-                        }
 
-                    }
-                    else
-                    {
-                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum) = '\0';
-                        colNum++;
-                    }
-                }
-                colNum=0;
-                rowNum++;
-            }
-            char inputChar = ' ';
-            while( (inputChar = getchar())!=EOF)
-            {
-                if(inputChar== ' ' || inputChar == '\n' || inputChar == '\t')
-                {
-                    printf("%c",inputChar);
-                }
-                else if (comparePolybiusAlphabetChar(inputChar)==0)
-                {
-                    return EXIT_FAILURE; //stop and end
-                }
-                else
-                {
-                    char* charPos = findCharPolybiusTable(inputChar, colLength, rowLength);
-                    printf("%s",charPos);
-                    //then function call to check if valid input and run encryption/decryption based on mode
-                }
-            }
-        }
 
     }
     else //fm
