@@ -16,5 +16,7 @@ int comparePolybiusAlphabetAll(char *string); //checks to see if all chars in gi
 int compareFractionatedMorseChar(char oneChar); //checks 1 char to see in -f alphabet
 int compareFractionatedMorseAll(char *string); //checks to see if all chars in given string in -f alphabet
 char* findCharPolybiusTable(char oneChar,int colLen, int rowLen); //returns position of char in polybius table as 2 chars
+void fillPolybiusTable(int rowLength, int colLength);
 int polybius_encrypt(int rowLength, int colLength); //returns -1 if error, returns 1 otherwise
+int polybius_decrypt(int rowLength,int colLength); // decrypts message, -1 if character invalid
 #endif

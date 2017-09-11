@@ -50,6 +50,7 @@ int main(int argc, char **argv)
     //create a pointer array here
     if( ((mode>>13) & (0x1)) == 0) //if poly cypher, 0[0]00 0000 0000 0000
     {
+        fillPolybiusTable(rowLength, colLength);
         if( ((mode>>12)& (0x1)) == 0) //encrypt
         {
             if(polybius_encrypt(rowLength, colLength) ==-1)
@@ -57,8 +58,10 @@ int main(int argc, char **argv)
                 return EXIT_FAILURE;
             }
         }
-
-
+        else //decrypt
+        {
+            polybius_decrypt(rowLength,colLength);
+        }
     }
     else //fm
     {
