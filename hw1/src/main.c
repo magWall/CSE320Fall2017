@@ -48,10 +48,13 @@ int main(int argc, char **argv)
     int rowLength = mode & 0xF0;
     int colLength = mode & 0xF;
     //create a pointer array here
-    if( ((mode>>13) & (0x1)) == 0) //if poly cypher, 0[0]00 0000 0000 0000
+    debug("mode>>13: %d",mode>>13);
+    debug("mode>>14: %d",mode>>14);
+
+    if( ((mode>>14) & (0x1)) == 0) //if poly cypher, 0[0]00 0000 0000 0000
     {
         fillPolybiusTable(rowLength, colLength);
-        if( ((mode>>12)& (0x1)) == 0) //encrypt
+        if( ((mode>>13)& (0x1)) == 0) //encrypt
         {
             if(polybius_encrypt(rowLength, colLength) ==-1)
             {

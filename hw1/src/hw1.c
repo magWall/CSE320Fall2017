@@ -170,7 +170,43 @@ char* findCharPolybiusTable(char oneChar, int colLen, int rowLen)
         colNum=0;
         rowNum++;
     }
-    return "invalid arg"; //cannot find it if -1
+    return "error"; //cannot find it if -1
+}
+char* findCharPolybiusTable2(char oneChar, char twoChar, int rowLen, int colLen)
+{
+    int rowNum=0;
+    int colNum=0;
+    long space;
+    char* tmpVar=(char*)&space;
+    if(oneChar>=65 && oneChar<=70)
+    {
+        rowNum= ((int)oneChar) -55; //65 = A , 65-55 = 10, A =10
+    }
+    else if(oneChar >=48 && oneChar<=57)
+    {
+        rowNum= ((int)oneChar)-48;
+    }
+    else
+    {
+        rowNum = -1;
+    }
+    if(twoChar>=65 && twoChar<=70)
+    {
+        colNum= ((int)twoChar) -55; //65 = A , 65-55 = 10, A =10
+    }
+    else if(twoChar >=48 && twoChar<=57)
+    {
+        colNum= ((int)twoChar)-48;
+    }
+    else
+    {
+        colNum = -1;
+    }
+    if(rowNum ==-1 || colNum == -1 || colNum>colLen || rowNum > rowLen)
+        return "error";
+    *(tmpVar)= *(polybius_table+ sizeof(char)*colNum + sizeof(char)*rowNum*colLen);
+    *(tmpVar+1)='\0';
+    return tmpVar;
 }
 /**
  * @brief Validates command line arguments passed to the program.
@@ -206,7 +242,7 @@ unsigned short validargs(int argc, char **argv) {
         if( ! ((**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) =='\0') || (**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) =='\0')) ) //check if correct encrypt/decrypt key
             return 0;
         /*code here for checking if d or if e, changing bits*/
-        if(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) =='\0') //if d, it should be 0010 0000 0000 0000,since F is 0, then we have 0010, or 0x2000
+        if(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) =='\0') //if d, it should be 0010 0000 0000 0000,since P is 0, then we have 0010, or 0x2000
             tmpshort = tmpshort | 0x2000;
        //if e, it should be 0000 0000 0000 0000,since F is 0, then we have 0000, or 0x0000 which means don't bitwise or anything
         /* then check if you have 5, 7, or 9 arguments. If the argc value is not equal to 3, 5, 7 or 9, it is invalid.
@@ -537,13 +573,12 @@ int polybius_decrypt(int rowLength,int colLength)
             {
                 printf("%c",inputChar);
             }
-            else if (comparePolybiusAlphabetChar(inputChar)==0)
-            {
-                return -1; //stop and end
-            }
+            //char must be not whitespace, and only characters accepted from input are those from encryped files
             else
             {
-                char* charPos = findCharPolybiusTable(inputChar, colLength, rowLength);
+
+                char inputChar2 = getchar(); //2nd char of a number
+                char* charPos = findCharPolybiusTable2(inputChar, inputChar2, rowLength, colLength);
                 printf("%s",charPos);
                 //then function call to check if valid input and run encryption/decryption based on mode
             }
