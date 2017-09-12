@@ -450,7 +450,7 @@ unsigned short validargs(int argc, char **argv) {
         if(**(argv+2)== '-' && *(*(argv+2)+1)=='d' && *(*(argv+2)+2) =='\0') //if d, it should be 0010 0000 0000 0000,since F is 1, then we have 0110, or 0x6000
             tmpshort = tmpshort | 0x6000;//if d, it should be 0010 0000 0000 0000, but we also need to include F, so it is 0110, or 0x6000
         else if(**(argv+2)== '-' && *(*(argv+2)+1)=='e' && *(*(argv+2)+2) =='\0') //if e, it should be 0000 0000 0000 0000,since F is 1, then we have 0100, or 0x4000
-            tmpshort = tmpshort || 0x4000;
+            tmpshort = tmpshort | 0x4000;
         else
             return 0;
         if(argc>3) //if argc >3, then check for -k args, if argc ==4, then fail. if argc >5, fail. If not -k, fail.
@@ -585,4 +585,66 @@ int polybius_decrypt(int rowLength,int colLength)
         }
     return 1;
 
+}
+void fill_fm_key()
+{
+    int idx=0;
+    if(key==NULL)
+    {
+        while(  *(fm_alphabet+idx) != '\0')
+        {
+            *(fm_key+idx) = *(fm_alphabet+idx);
+            idx++;
+        }
+    }
+    else
+    {
+        int fm_alphabetNum_idx =0;
+        int keyLength = numCharsConst(key);
+        int keyNum =0;
+        while(keyNum <keyLength)
+        {
+            *(fm_key+idx) = *(key+keyNum);
+            keyNum++;
+            idx++;
+        }
+        while(*(fm_alphabet+fm_alphabetNum_idx)!= '\0')
+        {
+            if(compareKey(*(fm_alphabet+fm_alphabetNum_idx)) == 0)
+            {
+                *(fm_key+idx)=  *(fm_alphabet+fm_alphabetNum_idx);
+                idx++;
+            }
+            fm_alphabetNum_idx++;
+        }
+        *(fm_key+idx)= '\0';//null terminator
+    }
+}
+void clearPolybiusTable()
+{
+    int idx= 0;
+    while(idx <sizeof(polybius_table) )
+    {
+        *(polybius_table+idx)='\0';
+        idx++;
+    }
+}
+int fm_encrypt()
+{
+    // use the polybius table as buffer since it is not used here
+
+    char inputChar= ' ';
+    while( (inputChar = getchar()) != EOF )
+    {
+        if(inputChar == '\t' || inputChar ==' ' || inputChar == '\n')
+        {
+
+        }
+
+    }
+    return 1;
+}
+int fm_decrypt()
+{
+    return 1;
 }

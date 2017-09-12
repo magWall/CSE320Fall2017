@@ -50,7 +50,7 @@ int main(int argc, char **argv)
     //create a pointer array here
     debug("mode>>13: %d",mode>>13);
     debug("mode>>14: %d",mode>>14);
-
+    debug("polybiusSize:%lu",sizeof(polybius_table));
     if( ((mode>>14) & (0x1)) == 0) //if poly cypher, 0[0]00 0000 0000 0000
     {
         fillPolybiusTable(rowLength, colLength);
@@ -68,6 +68,7 @@ int main(int argc, char **argv)
     }
     else //fm
     {
+        fill_fm_key();
         if( ((mode>>13)& (0x1)) == 0) //encrypt
         {
             if(fm_encrypt() ==-1)
