@@ -143,7 +143,7 @@ char* findCharPolybiusTable(char oneChar, int colLen, int rowLen)
     {
         while(colNum<colLen)
         {
-            if(*(polybius_table + sizeof(char)*colNum +sizeof(char)*colLen*rowNum)==oneChar)
+            if(*(polybius_table +  colNum + colLen*rowNum)==oneChar)
             {
                 if(rowNum>=10)
                 {
@@ -204,7 +204,7 @@ char* findCharPolybiusTable2(char oneChar, char twoChar, int rowLen, int colLen)
     }
     if(rowNum ==-1 || colNum == -1 || colNum>colLen || rowNum > rowLen)
         return "error";
-    *(tmpVar)= *(polybius_table+ sizeof(char)*colNum + sizeof(char)*rowNum*colLen);
+    *(tmpVar)= *(polybius_table+  colNum +  rowNum*colLen);
     *(tmpVar+1)='\0';
     return tmpVar;
 }
@@ -488,12 +488,12 @@ void fillPolybiusTable(int rowLength, int colLength)
                 {
                     if(idxOfAlphabet < numChars(polybius_alphabet))
                     {
-                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
+                        *(polybius_table +  colNum + colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
                         idxOfAlphabet++;
                     }
                     else
                     {
-                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum) = '\0';
+                        *(polybius_table +  colNum + colLength*rowNum) = '\0';
                     }
                     colNum++;
                 }
@@ -516,7 +516,7 @@ void fillPolybiusTable(int rowLength, int colLength)
                     {
                         if(keyNum<keyLength)
                         {
-                            *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(key+keyNum);
+                            *(polybius_table +  colNum + colLength*rowNum)= *(key+keyNum);
                             keyNum++;
                             colNum++;
                         }
@@ -524,7 +524,7 @@ void fillPolybiusTable(int rowLength, int colLength)
                         {
                             if(compareKey(*(polybius_alphabet+idxOfAlphabet)) == 0)
                             {
-                                *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
+                                *(polybius_table +  colNum + colLength*rowNum)= *(polybius_alphabet+idxOfAlphabet);
                                 colNum++;
                             }
                             idxOfAlphabet++;
@@ -533,7 +533,7 @@ void fillPolybiusTable(int rowLength, int colLength)
                     }
                     else
                     {
-                        *(polybius_table + sizeof(char)*colNum +sizeof(char)*colLength*rowNum) = '\0';
+                        *(polybius_table +  colNum + colLength*rowNum) = '\0';
                         colNum++;
                     }
                 }
