@@ -20,4 +20,7 @@ char* findCharPolybiusTable2(char oneChar, char twoChar, int rowLen, int colLen)
 void fillPolybiusTable(int rowLength, int colLength);
 int polybius_encrypt(int rowLength, int colLength); //returns -1 if error, returns 1 otherwise
 int polybius_decrypt(int rowLength,int colLength); // decrypts message, -1 if character invalid
+
+int fm_encrypt(void);
+int fm_decrypt(void);
 #endif

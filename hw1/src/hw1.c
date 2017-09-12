@@ -583,8 +583,6 @@ int polybius_decrypt(int rowLength,int colLength)
                 //then function call to check if valid input and run encryption/decryption based on mode
             }
         }
-        return 1;
-
     return 1;
 
 }

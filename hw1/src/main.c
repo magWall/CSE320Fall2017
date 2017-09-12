@@ -68,7 +68,17 @@ int main(int argc, char **argv)
     }
     else //fm
     {
-
+        if( ((mode>>13)& (0x1)) == 0) //encrypt
+        {
+            if(fm_encrypt() ==-1)
+            {
+                return EXIT_FAILURE;
+            }
+        }
+        else //decrypt
+        {
+            fm_decrypt();
+        }
     }
 
     return EXIT_SUCCESS;
