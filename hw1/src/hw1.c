@@ -707,10 +707,32 @@ int fm_encrypt()
     int spaceFlag = 0; //false whitespace
     while( (inputChar = getchar()) != EOF )
     {
-        if( (inputChar == '\t' || inputChar ==' ' || inputChar == '\n' )&& spaceFlag==0)
+        if( (inputChar == '\t' || inputChar ==' ')&& spaceFlag==0)
         {
             spaceFlag=1; //turn it on to prevent repetitive  whitespace
             storeMorseIntoPolybius(tmpMorseChars);
+            while(numChars(polybius_table)>=3)
+        {
+            printf("%s",grabMorseChar());
+        }
+        }
+        else if(inputChar == '\n' && spaceFlag == 0)
+        {
+            spaceFlag = 1;
+            storeMorseIntoPolybius(tmpMorseChars);
+            while(numChars(polybius_table)>=3)
+            {
+                printf("%s",grabMorseChar());
+            }
+            printf("\n");
+        }
+        else if (inputChar == '\n' && spaceFlag ==1)
+        {
+            while(numChars(polybius_table)>=3)
+            {
+                printf("%s",grabMorseChar());
+            }
+            printf("\n");
         }
         else if( ((int)inputChar -33) <0 || ((int)inputChar-33) >89 )  //morse codes go up to 90 elements, [89] ==z, and ! == [0], but since ! is given 33, then subtract 33 to get [0]
         {
@@ -724,11 +746,11 @@ int fm_encrypt()
             //store + convert
             storeMorseIntoPolybius( (char*) (*(morse_table+ ((int)inputChar)-33 )) );
             storeMorseIntoPolybius(tmpMorseChars);
+            while(numChars(polybius_table)>=3)
+            {
+                printf("%s",grabMorseChar());
+            }
 
-        }
-        while(numChars(polybius_table)>=3)
-        {
-            printf("%s",grabMorseChar());
         }
 
 
