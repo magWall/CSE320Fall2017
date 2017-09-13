@@ -26,7 +26,7 @@ void clearPolybiusTable(void); //sets all values to '\0'
 void shiftPolybiusTableMorseEncoding(void); //shift all characters by 3 to remove 1 'character' via morse
 void storeMorseIntoPolybius(char* string); //stores string into polybius table as buffer
 char* grabMorseChar(void);//changes the first 3 characters of polybius table into a character from fm_key through the fractionated table
-
+int compareFm_key(char oneChar); //returns idx of fm_key based on char
 int fm_encrypt(void); //encrypts into stdin
 int fm_decrypt(void);
 #endif

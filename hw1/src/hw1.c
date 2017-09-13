@@ -208,6 +208,17 @@ char* findCharPolybiusTable2(char oneChar, char twoChar, int rowLen, int colLen)
     *(tmpVar+1)='\0';
     return tmpVar;
 }
+int compareFm_key(char oneChar)
+{
+    int idx=0;
+    while(*(fm_key+idx) != '\0')
+    {
+        if(*(fm_key+idx) == oneChar)
+            return idx;
+        idx++;
+    }
+    return -1;
+}
 /**
  * @brief Validates command line arguments passed to the program.
  * @details This function will validate all the arguments passed to the program
@@ -707,14 +718,18 @@ int fm_encrypt()
     int spaceFlag = 0; //false whitespace
     while( (inputChar = getchar()) != EOF )
     {
-        if( (inputChar == '\t' || inputChar ==' ')&& spaceFlag==0)
+        if( (inputChar == '\t' || inputChar ==' ') )
         {
-            spaceFlag=1; //turn it on to prevent repetitive  whitespace
-            storeMorseIntoPolybius(tmpMorseChars);
-            while(numChars(polybius_table)>=3)
-        {
-            printf("%s",grabMorseChar());
-        }
+            if(spaceFlag==0)
+            {
+                spaceFlag=1; //turn it on to prevent repetitive  whitespace
+                storeMorseIntoPolybius(tmpMorseChars);
+                while(numChars(polybius_table)>=3)
+                {
+                 printf("%s",grabMorseChar());
+                }
+
+            }
         }
         else if(inputChar == '\n' && spaceFlag == 0)
         {
@@ -725,6 +740,7 @@ int fm_encrypt()
                 printf("%s",grabMorseChar());
             }
             printf("\n");
+            clearPolybiusTable();
         }
         else if (inputChar == '\n' && spaceFlag ==1)
         {
@@ -733,6 +749,7 @@ int fm_encrypt()
                 printf("%s",grabMorseChar());
             }
             printf("\n");
+            clearPolybiusTable();
         }
         else if( ((int)inputChar -33) <0 || ((int)inputChar-33) >89 )  //morse codes go up to 90 elements, [89] ==z, and ! == [0], but since ! is given 33, then subtract 33 to get [0]
         {
@@ -760,5 +777,14 @@ int fm_encrypt()
 }
 int fm_decrypt()
 {
+    clearPolybiusTable();
+    char inputChar= ' ';
+    while( (inputChar = getchar()) != EOF )
+    {
+        int idx = compareFm_key(inputChar);
+    }
+
+    //parse the x out, find the xx
+
     return 1;
 }
