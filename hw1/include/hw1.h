@@ -21,6 +21,12 @@ void fillPolybiusTable(int rowLength, int colLength);
 int polybius_encrypt(int rowLength, int colLength); //returns -1 if error, returns 1 otherwise
 int polybius_decrypt(int rowLength,int colLength); // decrypts message, -1 if character invalid
 void fill_fm_key(void);
+int compareFractionatedMorseTableString(char* string); //compares and returns idx of fm_key  where string of morse characters matches the string of fractionated morse characters
+void clearPolybiusTable(void); //sets all values to '\0'
+void shiftPolybiusTableMorseEncoding(void); //shift all characters by 3 to remove 1 'character' via morse
+void storeMorseIntoPolybius(char* string); //stores string into polybius table as buffer
+char* grabMorseChar(void);//changes the first 3 characters of polybius table into a character from fm_key through the fractionated table
+
 int fm_encrypt(void);
 int fm_decrypt(void);
 #endif

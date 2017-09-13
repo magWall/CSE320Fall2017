@@ -620,7 +620,7 @@ void fill_fm_key()
         *(fm_key+idx)= '\0';//null terminator
     }
 }
-void clearPolybiusTable()
+void clearPolybiusTable() //in case for random contents in polybius table
 {
     int idx= 0;
     while(idx <sizeof(polybius_table) )
@@ -629,19 +629,111 @@ void clearPolybiusTable()
         idx++;
     }
 }
+void storeMorseIntoPolybius(char* string)
+{
+    int idx =0;
+    int stringIdx =0;
+    while( *(polybius_table+idx) !='\0') //avoid confliting charaacters
+    {
+        idx++;
+    }
+    while( *(string+stringIdx) !='\0') //add into empty places
+    {
+        *(polybius_table + idx) = *(string+stringIdx);
+        idx++;
+        stringIdx++;
+    }
+}
+int compareFractionatedMorseTableString(char* string)
+{
+    int idx = 0;
+    while( *(fractionated_table+idx)!= NULL) //if not null char pointer
+    {
+        if(**(fractionated_table+idx)== *(string) && *(*(fractionated_table+idx)+1)== *(string+1) && *(*(fractionated_table+idx)+2)== *(string+2))
+            return idx;
+        idx++;
+    }
+    return -1;
+}
+void shiftPolybiusTableMorseEncoding()
+{
+    int idx=3; //0 1 2 are morse codes to be removed
+    if( *(polybius_table+idx)=='\0') //only 3 in the polybius table
+        clearPolybiusTable();//empty it
+    else
+    {
+        while(*(polybius_table+idx)!='\0' ) //shift everything by 3 to the left
+        {
+            *(polybius_table+idx-3)= *(polybius_table+idx);
+            idx++;
+        }
+        *(polybius_table+idx-3)= '\0';
+        *(polybius_table+idx-2)= '\0';
+        *(polybius_table+idx-1)= '\0';
+
+    }
+}
+char* grabMorseChar()
+{
+    long tmpSpace = 0;
+    char* tmpMorseChar = (char*)&tmpSpace;
+    *tmpMorseChar = *(polybius_table);
+    *(tmpMorseChar+1) = *(polybius_table+1);
+    *(tmpMorseChar+2) = *(polybius_table+2);
+    int idxFmKey = compareFractionatedMorseTableString(tmpMorseChar);
+
+    shiftPolybiusTableMorseEncoding();
+    if(idxFmKey!= -1)
+    {
+        *tmpMorseChar = *(fm_key+idxFmKey);
+        *(tmpMorseChar+1) = '\0';
+
+        return tmpMorseChar;
+    }
+    //check if match, then return char
+    //remember to move all characters back to 0 after grabbing first 3
+    return "error grab morse char";
+}
 int fm_encrypt()
 {
     // use the polybius table as buffer since it is not used here
-
+    clearPolybiusTable();
+    char* tmpMorseChars;
+    long tmpSpace;
+    tmpMorseChars = (char*)&tmpSpace;
+    *tmpMorseChars = 'x';
+    *(tmpMorseChars+1) = '\0';//separate words with whitespace
     char inputChar= ' ';
+    int spaceFlag = 0; //false whitespace
     while( (inputChar = getchar()) != EOF )
     {
-        if(inputChar == '\t' || inputChar ==' ' || inputChar == '\n')
+        if( (inputChar == '\t' || inputChar ==' ' || inputChar == '\n' )&& spaceFlag==0)
         {
+            spaceFlag=1; //turn it on to prevent repetitive  whitespace
+            storeMorseIntoPolybius(tmpMorseChars);
+        }
+        else if( ((int)inputChar -33) <0 || ((int)inputChar-33) >89 )  //morse codes go up to 90 elements, [89] ==z, and ! == [0], but since ! is given 33, then subtract 33 to get [0]
+        {
+            return -1;
+        }
+        else
+        {
+            spaceFlag=0; //turn it off if new letter
+            if(numCharsConst(*(morse_table+ ((int)inputChar)-33 )) ==0) //invalid input
+            return -1;
+            //store + convert
+            storeMorseIntoPolybius( (char*) (*(morse_table+ ((int)inputChar)-33 )) );
+            storeMorseIntoPolybius(tmpMorseChars);
 
         }
+        while(numChars(polybius_table)>=3)
+        {
+            printf("%s",grabMorseChar());
+        }
+
 
     }
+    //reaches EOF, remaining characters dropped
     return 1;
 }
 int fm_decrypt()
