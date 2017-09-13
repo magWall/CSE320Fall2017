@@ -705,6 +705,51 @@ char* grabMorseChar()
     //remember to move all characters back to 0 after grabbing first 3
     return "error grab morse char";
 }
+int checkForXXWhitespace() //returns idx, idx and idx+1 is 'xx', fail if -1
+{
+    int idx=0;
+    char a = *(polybius_table+idx);
+    char b = *(polybius_table+idx+1);
+    while(*(polybius_table+idx) != '\0')
+    {
+        if(a == 'x' && a == b)
+        {
+            return idx;
+        }
+        idx++;
+    }
+    return -1;
+}
+int getDecryptedCharacterIdx(int posOfXX)//function assumes checkForXXWhitespace returns >=0  , might need to check for a case where there's no whitespace at the end of string and still parse
+{
+    int idx=0;
+    long tmpSpace; //tmpSpace is 8 bytes
+    char* tmpMorseChar = (char*)&tmpSpace;
+    while(idx != posOfXX)
+    {
+        *(tmpMorseChar+idx) = *(polybius_table+idx);
+        idx++;
+    }
+    *(tmpMorseChar+idx) = '\0';
+    //length of tmpMorseChar = idx+1;
+
+    return -1;
+}
+void shiftPolybiusTableMorseEncodingDecryption(int idxToShift) //more efficient? ASSUME idxToShift shifts the length of translated morse chars, including the 'xx' whitespace characters
+{
+    int idx=0; //0 1 2 are morse codes to be removed
+    if( *(polybius_table+idx)=='\0') //if there's a parse error I didn't encounter here it will be erased
+        clearPolybiusTable();//empty it
+    else
+    {
+        while(*(polybius_table+idx)!='\0' ) //shift everything by idxToShift to the left
+        {
+            *(polybius_table+idx)= *(polybius_table+idx+idxToShift);
+            idx++;
+        }
+
+    }
+}
 int fm_encrypt()
 {
     // use the polybius table as buffer since it is not used here
@@ -782,6 +827,11 @@ int fm_decrypt()
     while( (inputChar = getchar()) != EOF )
     {
         int idx = compareFm_key(inputChar);
+        if(idx==-1) //fail case?
+            return -1;
+        storeMorseIntoPolybius( (char*) (*(fm_key+ idx)) );
+
+
     }
 
     //parse the x out, find the xx
