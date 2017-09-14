@@ -27,8 +27,9 @@ void shiftPolybiusTableMorseEncoding(void); //shift all characters by 3 to remov
 void storeMorseIntoPolybius(char* string); //stores string into polybius table as buffer
 char* grabMorseChar(void);//changes the first 3 characters of polybius table into a character from fm_key through the fractionated table
 int compareFm_key(char oneChar); //returns idx of fm_key based on char
-int checkForXXWhitespace();//if xx is present in buffer, that denotes the separation of words and thus can start parsing the string
+int checkForXXWhitespace(void);//if xx is present in buffer, that denotes the separation of words and thus can start parsing the string
 void shiftPolybiusTableMorseEncodingDecryption(int idxToShift); //shifts polybius table by parameter's value
+int checkForLetterDelimiterX(void); //checks for X , more efficient in a sense for decryption
 int getDecryptedCharacterIdx(int posOfXX); //returns decrypted character of polybius_table's morse encoding. It splits the dots and dashes on parameter where parameter denotes first x of xx
 int fm_encrypt(void); //encrypts into stdin
 int fm_decrypt(void);

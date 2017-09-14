@@ -870,11 +870,33 @@ int fm_decrypt()
         if(inputChar == '\n') //flushes out polybius_table buffer and go to next line
         {
             int numPolybiusCharsLeft = numChars(polybius_table);
-            int morseTableIdx = getDecryptedCharacterIdx(numPolybiusCharsLeft);
-            if(morseTableIdx != -1)
+            while(numPolybiusCharsLeft>0)
             {
-                shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx)));// 2 for XX characters
-                printf("%c",(char)(morseTableIdx+33));
+                int delimiterIdx = checkForLetterDelimiterX();
+                if(delimiterIdx>0)
+                {
+                    int morseTableIdx = getDecryptedCharacterIdx(delimiterIdx);
+                    if(morseTableIdx != -1)
+                    {
+                        shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx))+1);// 1 for X character
+                        printf("%c",(char)(morseTableIdx+33));
+                    }
+                }
+                else if(delimiterIdx==0)
+                {
+                    shiftPolybiusTableMorseEncodingDecryption(1); //that's a space
+                    printf(" ");
+                }
+                else
+                {
+                    int morseTableIdx = getDecryptedCharacterIdx(numPolybiusCharsLeft);
+                    if(morseTableIdx != -1)
+                    {
+                        shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx)));
+                        printf("%c",(char)(morseTableIdx+33));
+                    }
+                }
+                numPolybiusCharsLeft = numChars(polybius_table);
             }
             printf("\n");
         }
@@ -918,6 +940,34 @@ int fm_decrypt()
 
     }
     //last character is in polybius_table can be found by finding the length of the polybius_table and then setting that as the parameter for getDecryptedCharacterIdx
-
+    int numPolybiusCharsLeft = numChars(polybius_table);
+    while(numPolybiusCharsLeft>0)
+    {
+        int delimiterIdx = checkForLetterDelimiterX();
+        if(delimiterIdx>0)
+            {
+                int morseTableIdx = getDecryptedCharacterIdx(delimiterIdx);
+                if(morseTableIdx != -1)
+                {
+                   shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx))+1);// 1 for X character
+                   printf("%c",(char)(morseTableIdx+33));
+                }
+            }
+            else if(delimiterIdx==0)
+            {
+                shiftPolybiusTableMorseEncodingDecryption(1); //that's a space
+                printf(" ");
+            }
+            else
+            {
+                int morseTableIdx = getDecryptedCharacterIdx(numPolybiusCharsLeft);
+                if(morseTableIdx != -1)
+                {
+                    shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx)));
+                    printf("%c",(char)(morseTableIdx+33));
+                }
+            }
+            numPolybiusCharsLeft = numChars(polybius_table);
+    }
     return 1;
 }
