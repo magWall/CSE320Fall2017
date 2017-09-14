@@ -872,7 +872,7 @@ int fm_decrypt()
                 {
                     return -1;
                 }
-                shiftPolybiusTableMorseEncodingDecryption(numCharsConst( *(morse_table+morseTableIdx)+2 ));// 2 for XX characters
+                shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx))+2);// 2 for XX characters
                 printf("%c ",(char)(morseTableIdx+33));
             }
         }
