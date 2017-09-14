@@ -778,6 +778,19 @@ void shiftPolybiusTableMorseEncodingDecryption(int idxToShift) //more efficient?
 
     }
 }
+int checkForLetterDelimiterX()
+{
+    int idx=0;
+    char a = *(polybius_table+idx);
+    while( *(polybius_table+idx)!= '\0' )
+    {
+        a = *(polybius_table+idx);
+        if(a == 'x')
+            return idx;
+        idx++;
+    }
+    return -1;
+}
 int fm_encrypt()
 {
     // use the polybius table as buffer since it is not used here
@@ -874,6 +887,19 @@ int fm_decrypt()
                 }
                 shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx))+2);// 2 for XX characters
                 printf("%c ",(char)(morseTableIdx+33));
+            }
+            else //if no whitespace xx or if just a single x, check if next string before x can form into character, else loop and maybe you will get xx in next character
+            {
+                int delimiterIdx = checkForLetterDelimiterX();
+                if(delimiterIdx>=0)
+                {
+                    int morseTableIdx = getDecryptedCharacterIdx(delimiterIdx);
+                    if(morseTableIdx != -1)
+                    {
+                        shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx))+1);// 2 for XX characters
+                        printf("%c",(char)(morseTableIdx+33));
+                    }
+                }
             }
         }
 
