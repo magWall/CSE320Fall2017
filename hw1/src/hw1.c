@@ -867,8 +867,15 @@ int fm_decrypt()
     char inputChar= ' ';
     while( (inputChar = getchar()) != EOF )
     {
-        if(inputChar == '\n')
+        if(inputChar == '\n') //flushes out polybius_table buffer and go to next line
         {
+            int numPolybiusCharsLeft = numChars(polybius_table);
+            int morseTableIdx = getDecryptedCharacterIdx(numPolybiusCharsLeft);
+            if(morseTableIdx != -1)
+            {
+                shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx)));// 2 for XX characters
+                printf("%c",(char)(morseTableIdx+33));
+            }
             printf("\n");
         }
         else
@@ -891,18 +898,26 @@ int fm_decrypt()
             else //if no whitespace xx or if just a single x, check if next string before x can form into character, else loop and maybe you will get xx in next character
             {
                 int delimiterIdx = checkForLetterDelimiterX();
-                if(delimiterIdx>=0)
+                if(delimiterIdx>0)
                 {
                     int morseTableIdx = getDecryptedCharacterIdx(delimiterIdx);
                     if(morseTableIdx != -1)
                     {
-                        shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx))+1);// 2 for XX characters
+                        shiftPolybiusTableMorseEncodingDecryption(numCharsConst(*(morse_table+morseTableIdx))+1);// 1 for X character
                         printf("%c",(char)(morseTableIdx+33));
                     }
                 }
+                else if(delimiterIdx==0)
+                {
+                    shiftPolybiusTableMorseEncodingDecryption(1); //that's a space
+                    printf(" ");
+                }
+                //else delimiterIdx == -1 and no parse
             }
         }
 
     }
+    //last character is in polybius_table can be found by finding the length of the polybius_table and then setting that as the parameter for getDecryptedCharacterIdx
+
     return 1;
 }
