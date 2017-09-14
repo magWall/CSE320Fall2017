@@ -29,7 +29,7 @@ char* grabMorseChar(void);//changes the first 3 characters of polybius table int
 int compareFm_key(char oneChar); //returns idx of fm_key based on char
 int checkForXXWhitespace();//if xx is present in buffer, that denotes the separation of words and thus can start parsing the string
 void shiftPolybiusTableMorseEncodingDecryption(int idxToShift); //shifts polybius table by parameter's value
-int* getDecryptedCharacterIdx(int posOfXX); //returns decrypted character of polybius_table's morse encoding. It splits the dots and dashes on parameter where parameter denotes first x of xx
+int getDecryptedCharacterIdx(int posOfXX); //returns decrypted character of polybius_table's morse encoding. It splits the dots and dashes on parameter where parameter denotes first x of xx
 int fm_encrypt(void); //encrypts into stdin
 int fm_decrypt(void);
 #endif

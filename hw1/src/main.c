@@ -78,7 +78,8 @@ int main(int argc, char **argv)
         }
         else //decrypt
         {
-            fm_decrypt();
+            if(fm_decrypt()== -1)
+                return EXIT_FAILURE;
         }
     }
 

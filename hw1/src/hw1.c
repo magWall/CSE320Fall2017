@@ -712,6 +712,8 @@ int checkForXXWhitespace() //returns idx, idx and idx+1 is 'xx', fail if -1
     char b = *(polybius_table+idx+1);
     while(*(polybius_table+idx) != '\0')
     {
+        a = *(polybius_table+idx);
+        b = *(polybius_table+idx+1);
         if(a == 'x' && a == b)
         {
             return idx;
@@ -732,7 +734,33 @@ int getDecryptedCharacterIdx(int posOfXX)//function assumes checkForXXWhitespace
     }
     *(tmpMorseChar+idx) = '\0';
     //length of tmpMorseChar = idx+1;
-
+    int morseTableIdx = 0;
+    while(*(morse_table+morseTableIdx)!= NULL)
+    {
+        if( idx == numCharsConst( *(morse_table+morseTableIdx))) //compares number of characters in tmpMorseChar to the number of characters in a morse_table string
+        {
+            int morseTableStringIdx=0;
+            int matchedString = 0;
+            while( *(*(morse_table+morseTableIdx)+morseTableStringIdx)!= '\0')
+            {
+                if( *(tmpMorseChar+morseTableStringIdx)== *(*(morse_table+morseTableIdx)+morseTableStringIdx))
+                {
+                    morseTableStringIdx++;
+                    matchedString = 1;
+                }
+                else
+                {
+                    matchedString = 0;
+                    break;
+                }
+            }
+            if(matchedString==1)
+            {
+                return morseTableIdx;
+            }
+        }
+        morseTableIdx++;
+    }
     return -1;
 }
 void shiftPolybiusTableMorseEncodingDecryption(int idxToShift) //more efficient? ASSUME idxToShift shifts the length of translated morse chars, including the 'xx' whitespace characters
@@ -826,15 +854,29 @@ int fm_decrypt()
     char inputChar= ' ';
     while( (inputChar = getchar()) != EOF )
     {
-        int idx = compareFm_key(inputChar);
-        if(idx==-1) //fail case?
-            return -1;
-        storeMorseIntoPolybius( (char*) (*(fm_key+ idx)) );
-
+        if(inputChar == '\n')
+        {
+            printf("\n");
+        }
+        else
+        {
+            int idx = compareFm_key(inputChar);
+            if(idx==-1) //fail case?
+                return -1;
+            storeMorseIntoPolybius( (char*) (*(fractionated_table+ idx)) );
+            int xxWhitespace = checkForXXWhitespace(); //parse the x out, find the xx
+            if(xxWhitespace>=0)
+            {
+                int morseTableIdx = getDecryptedCharacterIdx(xxWhitespace);
+                if(morseTableIdx == -1)
+                {
+                    return -1;
+                }
+                shiftPolybiusTableMorseEncodingDecryption(numCharsConst( *(morse_table+morseTableIdx)+2 ));// 2 for XX characters
+                printf("%c ",(char)(morseTableIdx+33));
+            }
+        }
 
     }
-
-    //parse the x out, find the xx
-
     return 1;
 }
