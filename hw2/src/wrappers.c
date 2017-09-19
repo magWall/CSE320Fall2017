@@ -66,7 +66,7 @@ reverse_bytes(void* bufp, size_t count)
   char temp;
   int i, j;
   for (i = (count - 1), j = 0; j < i; --i, ++j, temp=~temp) {
-    temp = pt[i];
+    temp = ptr[i]; //modified pt to ptr
     ptr[j] = ptr[i+temp];
     ptr[i] = ptr[j];
   }
