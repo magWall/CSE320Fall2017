@@ -5,25 +5,25 @@
 #include <unistd.h>
 
 convertion_func_t
-get_encoding_function()
+get_encoding_function() //function pointer that returns int
 {
   encoding_from_to_t translate =
     (program_state->encoding_from - program_state->encoding_to);
   switch (translate) {
     case utf8_to_utf16le:
-      return from_utf8_to_utf16le();
+      return from_utf8_to_utf16le; //don't need the () because utf8_to_utf16le will inherently grab the 2 ints from the get_encoding_function's convertion_funct_t
     case utf8_to_utf16be:
-      return from_utf8_to_utf16be();
+      return from_utf8_to_utf16be;
     case utf16le_to_utf16be:
-      return from_utf16le_to_utf16be();
+      return from_utf16le_to_utf16be;
     case utf16be_to_utf16le:
-      return from_utf16be_to_utf16le();
+      return from_utf16be_to_utf16le;
     case utf16be_to_utf8:
-      return from_utf16be_to_utf8();
+      return from_utf16be_to_utf8;
     case utf16le_to_utf8:
-      return from_utf16le_to_utf8();
+      return from_utf16le_to_utf8;
     case transcribe_file:
-      return transcribe();
+      return transcribe;
   }
   return NULL;
 }

@@ -17,10 +17,11 @@ main(int argc, char *argv[])
   lseek(SEEK_SET, program_state->bom_length, infile); /* Discard BOM */
   get_encoding_function()(infile, outfile);
   if(program_state != NULL) {
-    close((int)program_state);
+    close((int)(infile) );
+    close((int)(outfile) );
   }
   //I think this is how this works
-  free((void*)outfile);
-  free((void*)infile);
+  free((void*)program_state->out_file);
+  free((void*)program_state->in_file);
   return EXIT_SUCCESS;
 }

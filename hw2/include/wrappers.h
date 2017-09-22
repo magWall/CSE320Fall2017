@@ -1,3 +1,5 @@
+#ifndef WRAPPERS_H
+#define WRAPPERS_H
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -44,3 +46,5 @@ void* memeset(void* s, int c, size_t n);
 * @param n number of bytes to copy
 */
 void* memecpy(void* dest, const void* src, size_t n);
+
+#endif
