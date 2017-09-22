@@ -39,6 +39,10 @@ from_utf16be_to_utf16le(int infile, int outfile)
 int
 from_utf16be_to_utf8(int infile, int outfile)
 {
+  int tmpFile = infile;
+  int tmpFile2 = outfile;
+  tmpFile++;
+  tmpFile2--;
   /* TODO */
   return -1;
 }

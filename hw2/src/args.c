@@ -25,27 +25,37 @@ parse_args(int argc, char *argv[])
   free(joined_argv);
 
   program_state = Calloc(1, sizeof(state_t));
-  for (i = 0; optind < argc; ++i) {
+  for (i = 0; optind < argc; ++i)
+  {
     debug("%d opterr: %d", i, opterr);
     debug("%d optind: %d", i, optind);
     debug("%d optopt: %d", i, optopt);
     debug("%d argv[optind]: %s", i, argv[optind]);
-    if ((option = getopt(argc, argv, "+ei:")) != -1) {
+    if ((option = getopt(argc, argv, "+e:")) != -1) //removed i
+    {
       switch (option) {
         case 'e': {
           info("Encoding Argument: %s", optarg);
           if ((program_state->encoding_to = determine_format(optarg)) == 0)
-            goto "errorcase";
+            {
+              print_state();
+              //may need to close and valgrind here
+              exit(EXIT_FAILURE);
+            }
+
         }
         case '?': {
           if (optopt != 'h')
-            fprintf(stderr, KRED "-%c is not a supported argument\n" KNRM,
+           {
+              fprintf(stderr, KRED "-%c is not a supported argument\n" KNRM,
                     optopt);
-        }
-        case "errorcase"[0]:
-        {
-          USAGE(argv[0]);
-          exit(0);
+              USAGE(argv[0]);
+              // may need to close and valgrind here with input docs
+              exit(EXIT_FAILURE);
+           }
+            //else it's h
+            USAGE(argv[0]);
+            exit(EXIT_SUCCESS);
         }
         default: {
           break;
@@ -64,7 +74,7 @@ parse_args(int argc, char *argv[])
       optind++;
     }
   }
-  free(joined_argv);
+ // free(joined_argv);
 }
 
 format_t
@@ -121,8 +131,10 @@ join_string_array(int count, char *array[]) //hello world   2,a    a = hello, wo
   for (i=0;i<count;i++)
   {
     lenOfArrayToAdd = strlen(array[i]);
-    memecpy(ret+currentLen,array[i],lenOfArrayToAdd);
+    memecpy(ret+currentLen,array[i],lenOfArrayToAdd); //add next string
     currentLen+=lenOfArrayToAdd;
+    memecpy(ret+currentLen," ",1);
+    currentLen+=1; //increment for space
   }
 
   return ret;
@@ -142,7 +154,6 @@ array_size(int count, char *array[])
 void
 print_state()
 {
-errorcase:
   if (program_state == NULL) {
     error("program_state is %p", (void*)program_state);
     exit(EXIT_FAILURE);
