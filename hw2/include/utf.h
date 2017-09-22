@@ -13,9 +13,9 @@
 #define AS_BYTE(x) ((char*)x)
 #define AS_GLYF(x) ((utf8_glyph_t*)x)
 
-const char *STR_UTF16BE  = "UTF16BE";
-char *const STR_UTF16LE = "UTF16LE";
-char const *STR_UTF8  = "UTF8";
+char *const STR_UTF16BE  = "UTF16BE";   //const char * == modifiable pointer, unmodifiable char
+char *const STR_UTF16LE = "UTF16LE";    //char *const = unmodifiable pointer, modifiable char
+char *const STR_UTF8  = "UTF8";         //char constant, char const * == modifiable pointer, unmodifiable char
 
 typedef enum { UTF16LE = 0xFFFE, UTF16BE = 0xFEFF, UTF8 = 0xBFBBEF } format_t;
 
