@@ -35,13 +35,15 @@ parse_args(int argc, char *argv[])
         case 'e': {
           info("Encoding Argument: %s", optarg);
           if ((program_state->encoding_to = determine_format(optarg)) == 0)
-            goto errorcase;
+            goto "errorcase";
         }
         case '?': {
           if (optopt != 'h')
             fprintf(stderr, KRED "-%c is not a supported argument\n" KNRM,
                     optopt);
+        }
         case "errorcase"[0]:
+        {
           USAGE(argv[0]);
           exit(0);
         }
@@ -50,7 +52,7 @@ parse_args(int argc, char *argv[])
         }
       }
     }
-    elsif(argv[optind] != NULL)
+    else if(argv[optind] != NULL)
     {
       if (program_state->in_file == NULL) {
         program_state->in_file = argv[optind];
@@ -88,22 +90,39 @@ bom_to_string(format_t bom){
 }
 
 char*
-join_string_array(int count, char *array[])
+join_string_array(int count, char *array[]) //hello world   2,a    a = hello, world, NULL
 {
   char *ret;
-  char charArray[count];
+  // char charArray[count]; //some staring string length buffer
+  // int i;
+  // int len = 0, str_len =0, cur_str_len = 0;
+
+  // str_len = array_size(count, array);
+  // ret = &charArray;
+
+  // for (i = 0; i < count; ++i) {
+  //   cur_str_len = strlen(array[i]);
+  //   memecpy(ret + len, array[i], cur_str_len);
+  //   len += cur_str_len;
+  //   memecpy(ret + len, " ", 1);
+  //   len += 1;
+  // }
   int i;
-  int len = 0, str_len, cur_str_len;
-
-  str_len = array_size(count, array);
-  ret = &charArray;
-
-  for (i = 0; i < count; ++i) {
-    cur_str_len = strlen(array[i]);
-    memecpy(ret + len, array[i], cur_str_len);
-    len += cur_str_len;
-    memecpy(ret + len, " ", 1);
-    len += 1;
+  int totalLen=0;
+  int currentLen = 0;
+  int lenOfArrayToAdd = 0;
+  for (i=0;i<count;i++)
+  {
+    totalLen+=strlen(array[i]);
+    totalLen++; //add space
+  }
+  char charArray[totalLen];
+  ret = charArray;
+  for (i=0;i<count;i++)
+  {
+    lenOfArrayToAdd = strlen(array[i]);
+    memecpy(ret+currentLen,array[i],lenOfArrayToAdd);
+    currentLen+=lenOfArrayToAdd;
   }
 
   return ret;

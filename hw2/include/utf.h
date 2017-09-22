@@ -130,7 +130,7 @@ void check_bom();
 
 void parse_args(int argc, char *argv[]);
 
-char *join_string_array(int argc, char *argv[]);
+char *join_string_array(int count, char *array[]);
 
 int array_size(int count, char *array[]);
 
