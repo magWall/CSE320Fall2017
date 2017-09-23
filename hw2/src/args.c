@@ -38,6 +38,9 @@ parse_args(int argc, char *argv[])
           info("Encoding Argument: %s", optarg);
           if ((program_state->encoding_to = determine_format(optarg)) == 0)
             {
+              free(program_state);
+              program_state = NULL;
+              USAGE(argv[0]);
               print_state();
               //may need to close and valgrind here
               exit(EXIT_FAILURE);
@@ -50,11 +53,13 @@ parse_args(int argc, char *argv[])
               fprintf(stderr, KRED "-%c is not a supported argument\n" KNRM,
                     optopt);
               USAGE(argv[0]);
+              free(program_state);
               // may need to close and valgrind here with input docs
               exit(EXIT_FAILURE);
            }
             //else it's h
             USAGE(argv[0]);
+            free(program_state);
             exit(EXIT_SUCCESS);
         }
         default: {
