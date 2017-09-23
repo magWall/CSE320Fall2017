@@ -1,5 +1,6 @@
 #ifndef WRAPPERS_H
 #define WRAPPERS_H
+
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -9,7 +10,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "utf.h"
-
+#endif
 /**
  * @brief Error checking for malloc
  *
@@ -46,5 +47,3 @@ void* memeset(void* s, int c, size_t n);
 * @param n number of bytes to copy
 */
 void* memecpy(void* dest, const void* src, size_t n);
-
-#endif

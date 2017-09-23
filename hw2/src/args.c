@@ -13,10 +13,6 @@ char *optarg;
 
 state_t *program_state;
 
-const char *STR_UTF16BE  = "UTF16BE";   //const char * == modifiable pointer, unmodifiable char
-const char *STR_UTF16LE = "UTF16LE";    //char *const = unmodifiable pointer, modifiable char
-const char *STR_UTF8  = "UTF8";         //char constant, char const * == modifiable pointer, unmodifiable char
-
 void
 parse_args(int argc, char *argv[])
 {

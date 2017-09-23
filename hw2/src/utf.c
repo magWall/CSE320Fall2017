@@ -4,6 +4,10 @@
 #include <sys/sendfile.h>
 #include <unistd.h>
 
+char *STR_UTF16BE  = "UTF16BE";   //const char * == modifiable pointer, unmodifiable char
+char *STR_UTF16LE = "UTF16LE";    //char *const = unmodifiable pointer, modifiable char
+char *STR_UTF8  = "UTF8";         //char constant, char const * == modifiable pointer, unmodifiable char
+
 convertion_func_t
 get_encoding_function() //function pointer that returns int
 {
