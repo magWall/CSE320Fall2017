@@ -103,38 +103,28 @@ char*
 join_string_array(int count, char *array[]) //hello world   2,a    a = hello, world, NULL
 {
   char *ret;
-  // char charArray[count]; //some staring string length buffer
-  // int i;
-  // int len = 0, str_len =0, cur_str_len = 0;
-
-  // str_len = array_size(count, array);
-  // ret = &charArray;
-
-  // for (i = 0; i < count; ++i) {
-  //   cur_str_len = strlen(array[i]);
-  //   memecpy(ret + len, array[i], cur_str_len);
-  //   len += cur_str_len;
-  //   memecpy(ret + len, " ", 1);
-  //   len += 1;
-  // }
   int i;
   int totalLen=0;
   int currentLen = 0;
   int lenOfArrayToAdd = 0;
-  for (i=0;i<count;i++)
+  for (i=1;i<count;i++)
   {
     totalLen+=strlen(array[i]);
     totalLen++; //add space
   }
-  char charArray[totalLen];
-  ret = charArray;
-  for (i=0;i<count;i++)
+  ret = malloc(sizeof(char)*totalLen);
+  for (i=1;i<count;i++)
   {
     lenOfArrayToAdd = strlen(array[i]);
-    memecpy(ret+currentLen,array[i],lenOfArrayToAdd); //add next string
+    memmove(ret+currentLen,array[i],lenOfArrayToAdd); //add next string
     currentLen+=lenOfArrayToAdd;
-    memecpy(ret+currentLen," ",1);
-    currentLen+=1; //increment for space
+    if(i+1!=count)
+    {
+      memmove(ret+currentLen," ",1);
+      currentLen+=1; //increment for space
+    }
+    else if(i+1==count) //put null terminator
+      *(ret+currentLen)= '\0';
   }
 
   return ret;
