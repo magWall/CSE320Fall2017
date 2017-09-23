@@ -24,6 +24,39 @@ parse_args(int argc, char *argv[])
   info("argc: %d argv: %s", argc, joined_argv);
   free(joined_argv);
 
+  if(argc==1) //fail if no args passed,
+  {
+    USAGE(argv[0]);
+    exit(EXIT_FAILURE);
+  }
+  int tmpIdx=0;
+  for(tmpIdx=1;tmpIdx<argc;tmpIdx++)//check for -h as it takes precedence
+  {
+    if(strcmp(*(argv+tmpIdx),"-h")==0)
+    {
+      USAGE(argv[0]);
+      exit(EXIT_SUCCESS);
+    }
+  }
+  bool tmpEflag= false;
+  tmpIdx=1;
+    //-e mandatory if -h not available, and positional args infile outfile required
+  if(argc<5) //if -e is not found, then -h is a must, else  infile,outfile,-e
+  {                                   //bin/utf in.txt out.txt -e ENCODING == 5 args
+    while(tmpIdx<argc)
+    {
+      if(strcmp(*(argv+tmpIdx),"-e")==0)
+        tmpEflag=true;
+      tmpIdx++;
+    }
+    if(tmpEflag == true) //can't run -e without other 4 args
+    {
+      USAGE(argv[0]);
+      exit(EXIT_FAILURE);
+    }
+
+  }
+
   program_state = Calloc(1, sizeof(state_t));
   for (i = 0; optind < argc; ++i)
   {
@@ -72,7 +105,7 @@ parse_args(int argc, char *argv[])
       if (program_state->in_file == NULL) {
         program_state->in_file = argv[optind];
       }
-      elsif(program_state->out_file == NULL)
+      else if(program_state->out_file == NULL)
       {
         program_state->out_file = argv[optind];
       }
