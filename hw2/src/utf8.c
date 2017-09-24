@@ -39,7 +39,7 @@ int
 from_utf8_to_utf16be(int infile, int outfile)
 {
   int ret = 0;
-  int bom;
+//  int bom;
   utf8_glyph_t utf8_buf;
   ssize_t bytes_read;
   size_t remaining_bytes;
@@ -47,11 +47,13 @@ from_utf8_to_utf16be(int infile, int outfile)
   code_point_t code_point;
   utf16_glyph_t utf16_buf;
 
-  bom = UTF16BE;
-   #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-   reverse_bytes(&bom, 2);
-   #endif
-  write_to_bigendian(outfile, &bom, 2);
+  utf8_glyph_t emptyUtf8_buffer;
+
+//  bom = UTF16BE;
+   // #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+   // reverse_bytes(&bom, 2);
+   // #endif
+ // write_to_bigendian(outfile, &bom, 2);  //this repeats
   //while remaining_bytes!=0, bytes_read<0?
   while((bytes_read = read_to_bigendian(infile, &utf8_buf.bytes[0], 1)) > 0) {
 
@@ -69,8 +71,10 @@ from_utf8_to_utf16be(int infile, int outfile)
       }
     }
     code_point = get_utf8_decoding_function(remaining_bytes + 1)(utf8_buf);
+
     utf16_buf = code_point_to_utf16be_glyph(code_point, &size_of_glyph);
     write_to_bigendian(outfile, &utf16_buf, size_of_glyph);
+    utf8_buf=emptyUtf8_buffer;
   }
   ret = bytes_read;
   return ret;
