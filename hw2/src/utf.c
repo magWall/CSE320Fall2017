@@ -63,6 +63,7 @@ check_bom()
 //   reverse_bytes(&bom, 2);
 // #endif
   debug("BOM AFTER SWAP: %x", bom);
+
   if (LOWER_TWO_BYTES(bom) == UTF16LE) {
     info("Source BOM: %s", STR_UTF16LE);
     program_state->encoding_from = UTF16LE;
