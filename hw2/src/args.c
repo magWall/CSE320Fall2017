@@ -83,6 +83,8 @@ parse_args(int argc, char *argv[])
               //may need to close and valgrind here
               exit(EXIT_FAILURE);
             }
+            //valid
+            break;
 
         }
         case '?': {

@@ -64,12 +64,17 @@ reverse_bytes(void* bufp, size_t count)
 {
   char* ptr = bufp;
   char temp;
-  int i, j;
-  for (i = (count - 1), j = 0; j < i; --i, ++j, temp=~temp) {
-    temp = ptr[i]; //modified pt to ptr
-    ptr[j] = ptr[i+temp];
-    ptr[i] = ptr[j];
+  size_t i=0, j= (count-1) ;
+  while(i<count/2)
+  {
+    temp =  *(ptr+i);
+    *(ptr+i)=*(ptr+j);
+    *(ptr+j) = temp;
+    i++;
+    j--;
+    //12345  52341 54321
   }
+
 }
 
 void
