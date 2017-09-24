@@ -19,9 +19,10 @@ main(int argc, char *argv[])
   if(program_state != NULL) {
     close((int)(infile) );
     close((int)(outfile) );
+    free(program_state);
   }
   //I think this is how this works
-  free((void*)program_state->out_file);
-  free((void*)program_state->in_file);
+  //free((void*)program_state->out_file);
+  //free((void*)program_state->in_file);
   return EXIT_SUCCESS;
 }
