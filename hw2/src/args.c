@@ -56,6 +56,11 @@ parse_args(int argc, char *argv[])
     }
 
   }
+  if(argc>5) //-h not found at this point, and you have extra args, fail
+  {
+    USAGE(argv[0]);
+    exit(EXIT_FAILURE);
+  }
 
   program_state = Calloc(1, sizeof(state_t));
   for (i = 0; optind < argc; ++i)
@@ -145,23 +150,24 @@ join_string_array(int count, char *array[]) //hello world   2,a    a = hello, wo
   int totalLen=0;
   int currentLen = 0;
   int lenOfArrayToAdd = 0;
-  for (i=1;i<count;i++)
+  for (i=0;i<count;i++)
   {
     totalLen+=strlen(array[i]);
     totalLen++; //add space
   }
+  totalLen++; //add null terminator
   ret = malloc(sizeof(char)*totalLen);
-  for (i=1;i<count;i++)
+  for (i=0;i<count;i++)
   {
     lenOfArrayToAdd = strlen(array[i]);
-    memmove(ret+currentLen,array[i],lenOfArrayToAdd); //add next string
+    memcpy(ret+currentLen,array[i],lenOfArrayToAdd); //add next string
     currentLen+=lenOfArrayToAdd;
-    if(i+1!=count)
-    {
-      memmove(ret+currentLen," ",1);
+//    if(i+1!=count)
+//    {
+      memcpy(ret+currentLen," ",1);
       currentLen+=1; //increment for space
-    }
-    else if(i+1==count) //put null terminator
+//    }
+    /*else*/ if(i+1==count) //put null terminator
       *(ret+currentLen)= '\0';
   }
 
