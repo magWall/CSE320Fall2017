@@ -54,17 +54,17 @@ code_point_to_utf16le_glyph(code_point_t code_point, size_t *size_of_glyph)
     code_point -= 0x10000;
     ret.upper_bytes = (code_point >> 10) + 0xD800;
     ret.lower_bytes = (code_point & 0x3FF) + 0xDC00;
-  #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    reverse_bytes(&ret.upper_bytes, 2);
-    reverse_bytes(&ret.lower_bytes, 2);
-  #endif
+   // #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+   //   reverse_bytes(&ret.upper_bytes, 2);
+   //   reverse_bytes(&ret.lower_bytes, 2);
+   // #endif
     *size_of_glyph = 4;
   }
   else {
     ret.upper_bytes |= code_point;
-  #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    reverse_bytes(&ret.upper_bytes, 2);
-  #endif
+   // #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+   //   reverse_bytes(&ret.upper_bytes, 2);
+   // #endif
     *size_of_glyph = 2;
   }
   return ret;
