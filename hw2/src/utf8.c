@@ -52,12 +52,20 @@ from_utf8_to_utf16be(int infile, int outfile)
    reverse_bytes(&bom, 2);
    #endif
   write_to_bigendian(outfile, &bom, 2);
-
+  //while remaining_bytes!=0, bytes_read<0?
   while((bytes_read = read_to_bigendian(infile, &utf8_buf.bytes[0], 1)) > 0) {
+
     if((remaining_bytes = remaining_utf8_bytes(utf8_buf.bytes[0])))
     {
-      if((bytes_read = read_to_bigendian(infile, &utf8_buf.bytes[1], remaining_bytes)) < 0) {
-        break;
+      //error?
+      int idx = 0;
+      while((size_t)idx<remaining_bytes)
+      {
+          if((bytes_read = read_to_bigendian(infile, &utf8_buf.bytes[idx+1],1)) == 0)
+          {
+            break;
+          }
+          idx++;
       }
     }
     code_point = get_utf8_decoding_function(remaining_bytes + 1)(utf8_buf);
