@@ -63,13 +63,16 @@ check_bom()
 //   reverse_bytes(&bom, 2);
 // #endif
   debug("BOM AFTER SWAP: %x", bom);
+  debug("LOWER_TWO_BYTES:  %x",LOWER_TWO_BYTES(bom));
+  debug("TOP_TWO_BYTES_FROM_THREE:  %x",TOP_TWO_BYTES_FROM_THREE(bom));
 
-  if (LOWER_TWO_BYTES(bom) == UTF16LE) {
+
+  if (TOP_TWO_BYTES_FROM_THREE(bom) == UTF16LE) {
     info("Source BOM: %s", STR_UTF16LE);
     program_state->encoding_from = UTF16LE;
     program_state->bom_length = 2;
   }
-  elsif(LOWER_TWO_BYTES(bom) == UTF16BE)
+  else if(TOP_TWO_BYTES_FROM_THREE(bom) == UTF16BE)
   {
     info("Source BOM: %s", STR_UTF16BE);
     program_state->encoding_from = UTF16BE;
