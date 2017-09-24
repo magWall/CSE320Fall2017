@@ -81,7 +81,12 @@ void
 *memeset(void *s, int c, size_t n) {
  // register char* stackpointer asm("esp"); //initialize stackpointer pointer with the value of the actual stackpointer
  // stackpointer = s;                 //fixed?
-  memeset(s, c, n);
+  if(s==NULL)
+  {
+    perror("invalid memeset");
+    exit(EXIT_FAILURE);
+  }
+  memset(s, c, n);
   return s;
 };
 
@@ -89,6 +94,11 @@ void
 *memecpy(void *dest, void const *src, size_t n) {
  // register char* stackpointer asm("esp"); //initialize stackpointer pointer with the value of the actual stackpointer
  // stackpointer =  dest;             //fixed?
+  if(dest == NULL)
+  {
+    perror("invalid memecpy");
+    exit(EXIT_FAILURE);
+  }
   memcpy(dest, src, n);
   return dest;
 };
