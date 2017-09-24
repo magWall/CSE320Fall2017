@@ -17,7 +17,7 @@ char *STR_UTF16BE;   //const char * == modifiable pointer, unmodifiable char
 char *STR_UTF16LE;    //char *const = unmodifiable pointer, modifiable char
 char *STR_UTF8;         //char constant, char const * == modifiable pointer, unmodifiable char
 
-typedef enum { UTF16LE = 0xFFFE, UTF16BE = 0xFEFF, UTF8 = 0xBFBBEF } format_t;
+typedef enum { UTF16LE = 0xFFFE, UTF16BE = 0xFEFF, UTF8 = 0xEFBBBF } format_t;
 
 typedef enum {
   utf8_to_utf16le = (UTF8 - UTF16LE),
