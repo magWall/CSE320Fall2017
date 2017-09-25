@@ -28,6 +28,7 @@ ssize_t read_to_bigendian(int fd, void* buf, size_t count);
 ssize_t write_to_bigendian(int fd, void* buf, size_t count);
 
 ssize_t write_to_littleendian(int fd,void* buf, size_t count);
+ssize_t read_to_littleendian(int fd, void* buf, size_t count);
 
 void reverse_bytes(void* buf, size_t count);
 

@@ -58,14 +58,14 @@ write_to_bigendian(int fd, void* buf, size_t count)
   bytes_read = write(fd, buf, count);
   return bytes_read;
 }
-// ssize_t
-// read_to_littleendian(int fd, void* buf, size_t count)
-// {
-//   ssize_t bytes_read;
+ ssize_t
+ read_to_littleendian(int fd, void* buf, size_t count)
+ {
+   ssize_t bytes_read;
 
-//   bytes_read = read(fd, buf, count);
-//   return bytes_read;
-// }
+   bytes_read = read(fd, buf, count);
+   return bytes_read;
+ }
 
 ssize_t
 write_to_littleendian(int fd, void* buf, size_t count)

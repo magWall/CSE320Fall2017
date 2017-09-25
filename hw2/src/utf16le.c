@@ -37,11 +37,34 @@ from_utf16le_to_utf16be(int infile, int outfile)
 int
 from_utf16le_to_utf8(int infile, int outfile)
 {  /* TODO */
-  int tmpFile = infile;
-  int tmpFile2 = outfile;
-  tmpFile++;
-  tmpFile2--;
-  return -1;
+  int ret = -1;
+  utf16_glyph_t utf16_buf;
+  ssize_t bytes_read;
+  size_t size_of_glyph;
+  code_point_t code_point;
+  utf8_glyph_t utf8_buf;
+  utf16_glyph_t utf16_empty_buf;
+
+  while((bytes_read = read_to_littleendian(infile, &utf16_buf.upper_bytes, 2)) > 0)
+  {
+    if( is_upper_surrogate_pair(utf16_buf) )
+    {
+      bytes_read = read_to_littleendian(infile, &utf16_buf.lower_bytes,2);
+    }
+    else
+    {
+      bytes_read = 2;
+    }
+    ret = bytes_read;
+    code_point =utf16_glyph_to_code_point(&utf16_buf);
+    size_of_glyph = utf8_glyph_size_of_code_point(code_point);
+    utf8_buf = code_point_to_utf8_glyph(code_point,&size_of_glyph);
+    debug("%x",code_point);
+//    printf("%x,",code_point);
+    write_to_littleendian(outfile,&utf8_buf,size_of_glyph);
+    utf16_buf = utf16_empty_buf;
+ }
+  return ret;
 }
 
 utf16_glyph_t
