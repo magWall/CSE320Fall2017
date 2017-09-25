@@ -35,7 +35,7 @@ from_utf16le_to_utf16be(int infile, int outfile)
 }
 
 int
-from_utf16le_to_utf8(int infile, int outfile)
+from_utf16le_to_utf8(int infile, int outfile) //deleted file, this works
 {  /* TODO */
   int ret = -1;
   utf16_glyph_t utf16_buf;
