@@ -130,7 +130,7 @@ size. Note that this includes splinters and extra memory for alignment.
 **Block Header Format:**
 <pre>
 +--------------------------------------------+------------------+-------+-------+---------+
-|                 block_size                 |   block_size     |       | padded|  alloc  |
+|                 unused                     |   block_size     |       | padded|  alloc  |
 |                                            |                  |  00   |   1   |    1    |
 |                 32 bits                    |     28 bits      |       |  bit  |   bit   |
 +--------------------------------------------+------------------+-------+-------+---------+
