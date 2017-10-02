@@ -50,8 +50,8 @@ that manages up to 4 pages of memory at a time with the following features:
 memory from `sf_sbrk`. This is the only case.
 - Block splitting without creating splinters.
 
-Free blocks will be inserted into the proper free list in **first in first out
-(FIFO) order**.
+Free blocks will be inserted into the proper free list in **last in first out
+(LIFO) order**.
 
 You will implement your own versions of the **malloc**, **realloc**, and
 **free** functions.
@@ -81,7 +81,7 @@ there is no actual maximum for the final list. It holds all blocks larger than
 > :thinking: Why is the minimum block size 32? Think about how the header,
 > footer, and alignment affect the minimum block size.
 
-Within each free list, the blocks must be arranged in FIFO order. This means
+Within each free list, the blocks must be arranged in LIFO order. This means
 that a block is always inserted at the beginning of a free list.
 
 ## Block Placement Policy
