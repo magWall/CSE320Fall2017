@@ -470,11 +470,11 @@ The block header is defined as:
 
 ```c
 typedef struct {
-    uint64_t         unused : HEADER_UNUSED_BITS;
-    uint64_t     block_size : BLOCK_SIZE_BITS;
-    uint64_t     two_zeroes : TWO_ZEROES;
-    uint64_t         padded : PADDED_BITS;
     uint64_t      allocated : ALLOCATED_BITS;
+    uint64_t         padded : PADDED_BITS;
+    uint64_t     two_zeroes : TWO_ZEROES;
+    uint64_t     block_size : BLOCK_SIZE_BITS;
+    uint64_t         unused : HEADER_UNUSED_BITS;
 } __attribute__((packed)) sf_header;
 ```
 
@@ -499,11 +499,11 @@ Lastly, `include/sfmm.h` also provides a struct for accessing the footer.
 
 ```c
 typedef struct {
-    uint64_t requested_size : REQUESTED_SIZE_BITS;
-    uint64_t     block_size : BLOCK_SIZE_BITS;
-    uint64_t     two_zeroes : TWO_ZEROES;
-    uint64_t         padded : PADDED_BITS;
     uint64_t      allocated : ALLOCATED_BITS;
+    uint64_t         padded : PADDED_BITS;
+    uint64_t     two_zeroes : TWO_ZEROES;
+    uint64_t     block_size : BLOCK_SIZE_BITS;
+    uint64_t requested_size : REQUESTED_SIZE_BITS;
 } __attribute__((packed)) sf_footer;
 ```
 
