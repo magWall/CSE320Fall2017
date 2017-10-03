@@ -312,9 +312,10 @@ void sf_mem_fini();
 
 /*
  * This function changes the position of your program's break.
- * Calling this function increments the break by 1 page and updates
- * the heap start and end variables, which can be accessed through
- * get_heap_start() and get_heap_end().
+ * Calling this function increments the break by 1 page. On the first call,
+ * the heap start and end variables are updated. On subsequent calls, only
+ * the heap end variable is incremented by 1 page. Both of these can be accessed
+ * through get_heap_start() and get_heap_end().
  *
  * @return On success, this function returns the previous program break.
  * If the break was increased, this value is a pointer to the start of the newly
