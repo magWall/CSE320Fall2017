@@ -709,7 +709,7 @@ space taken from the heap so far. It then prints out each block in each list.
 
 - Do not use prologue or epilogue blocks
 - You are only working with 4 pages of memory (1 page = 4096 bytes). Allocations
-over 4 pages should return NULL and set `sf_errno` to `ENOMEM`.
+over 4 pages should return NULL and set `sf_errno` to `EINVAL`.
 - Make sure that memory returned to the user is aligned and padded correctly for
 the system we use (64-bit Linux Mint).
 - We will not grade using Valgrind. However, you are encouraged to use it to
