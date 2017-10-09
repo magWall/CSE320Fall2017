@@ -44,13 +44,16 @@ void *sf_malloc(size_t size) {
             (seg_free_list[3].head)->header.unused = 0;
 
             //footer in sf_header because they have same values
-            (seg_free_list[3].head + ((char)(PAGE_SZ - 16)) )->header.allocated = 0;
-            (seg_free_list[3].head + ((char)(PAGE_SZ - 16)) )->header.padded=0;
-            (seg_free_list[3].head + ((char)(PAGE_SZ - 16)) )->header.two_zeroes=0;
-            (seg_free_list[3].head + ((char)(PAGE_SZ - 16)) )->header.block_size= (PAGE_SZ)>>4;
-            (seg_free_list[3].head + ((char)(PAGE_SZ - 16)) )->header.unused=0; //requested size
+            (seg_free_list[3].head + ((char)(PAGE_SZ - 8)) )->header.allocated = 0;
+            (seg_free_list[3].head + ((char)(PAGE_SZ - 8)) )->header.padded=0;
+            (seg_free_list[3].head + ((char)(PAGE_SZ - 8)) )->header.two_zeroes=0;
+            (seg_free_list[3].head + ((char)(PAGE_SZ - 8)) )->header.block_size= (PAGE_SZ)>>4;
+            (seg_free_list[3].head + ((char)(PAGE_SZ - 8)) )->header.unused=0; //requested size
 
             currPageNum++;
+            //block_size is measured in hex, the remaining are in bits
+            sf_blockprint(seg_free_list[3].head);
+
         }
         else
         {
@@ -66,6 +69,22 @@ void *sf_malloc(size_t size) {
         {
             if(seg_free_list[i].head != NULL)
             {
+                sf_free_header* tmpHeader = seg_free_list[i].head;
+                while(tmpHeader !=NULL)
+                {
+                    if(tmpHeader->header.block_size <size)
+                    {
+                        tmpHeader->header.allocated = 1;
+                        if(size%16!=0)
+                        {
+                            tmpHeader->header.padded=1;
+//                            tmpHeader->header+(tmpHeader->header.block_size -16);
+                        }
+
+                        //return payload
+                    }
+                    tmpHeader = tmpHeader->next;
+                }
                 //loop through all list, if space avail, alloc
                 //check if NULL, if not null, go to beginning of list header
 
@@ -89,9 +108,10 @@ void *sf_malloc(size_t size) {
     else if (size >= LIST_3_MIN)
     {
 
+        //if list not null and size not enough but you can get more pages
+        //get another page and if ptr+sizeofblock == sf_breaks ptr address, coalesce
+        //else just add into list
     }
-
-
 
 
     return NULL;
@@ -120,6 +140,7 @@ void sf_free(void *ptr) {
     // if invalid ptr, abort
     if (ptr == NULL)
         abort();
+    //ptr is payload
 
     //check if alloc, if not abort
 
