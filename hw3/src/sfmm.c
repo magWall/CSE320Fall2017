@@ -44,11 +44,11 @@ void *sf_malloc(size_t size) {
             (seg_free_list[3].head)->header.unused = 0;
 
             //footer in sf_header because they have same values
-            (seg_free_list[3].head + ((char)(PAGE_SZ - 8)) )->header.allocated = 0;
-            (seg_free_list[3].head + ((char)(PAGE_SZ - 8)) )->header.padded=0;
-            (seg_free_list[3].head + ((char)(PAGE_SZ - 8)) )->header.two_zeroes=0;
-            (seg_free_list[3].head + ((char)(PAGE_SZ - 8)) )->header.block_size= (PAGE_SZ)>>4;
-            (seg_free_list[3].head + ((char)(PAGE_SZ - 8)) )->header.unused=0; //requested size
+            ((sf_free_header*)((char*)seg_free_list[3].head + PAGE_SZ - 8))->header.allocated = 0;
+            ((sf_free_header*)((char*)seg_free_list[3].head + PAGE_SZ - 8))->header.padded=0;
+            ((sf_free_header*)((char*)seg_free_list[3].head + PAGE_SZ - 8))->header.two_zeroes=0;
+            ((sf_free_header*)((char*)seg_free_list[3].head + PAGE_SZ - 8))->header.block_size= (PAGE_SZ)>>4;
+            ((sf_free_header*)((char*)seg_free_list[3].head + PAGE_SZ - 8))->header.unused=0; //requested size
 
             currPageNum++;
             //block_size is measured in hex, the remaining are in bits
