@@ -72,19 +72,28 @@ void *sf_malloc(size_t size) {
                 sf_free_header* tmpHeader = seg_free_list[i].head;
                 while(tmpHeader !=NULL)
                 {
-                    if(tmpHeader->header.block_size <size)
+                    if(tmpHeader->header.block_size <(size-16) )//subtract 16 bytes for header and footer
                     {
                         tmpHeader->header.allocated = 1;
+                        ((sf_free_header*)((char*)tmpHeader+tmpHeader->header.block_size))->header.allocated=1;
+                        ((sf_free_header*)((char*)tmpHeader+tmpHeader->header.block_size))->header.unused=size;//requested size
                         if(size%16!=0)
                         {
                             tmpHeader->header.padded=1;
-//                            tmpHeader->header+(tmpHeader->header.block_size -16);
+                            ((sf_free_header*)((char*)tmpHeader+tmpHeader->header.block_size))->header.padded=1;
+                            return ((char*)tmpHeader+8+ (16- (size%16) ));
                         }
-
+                        else
+                        {
+                            tmpHeader->header.padded=0;
+                            ((sf_free_header*)((char*)tmpHeader+tmpHeader->header.block_size))->header.padded=0;
+                            return (char*)tmpHeader+8;
+                        }
                         //return payload
                     }
                     tmpHeader = tmpHeader->next;
-                }
+                }//if out of loop, check currPages <4
+
                 //loop through all list, if space avail, alloc
                 //check if NULL, if not null, go to beginning of list header
 
