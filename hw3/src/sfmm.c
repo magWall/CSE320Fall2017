@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include "hw3functs.h"
 
 /**
  * You should store the heads of your free lists in these variables.
@@ -23,14 +24,71 @@ free_list seg_free_list[4] = {
 int sf_errno = 0;
 int currPageNum = 0; // 1 to 3
 
+void add_page() //assuming you can add a page
+{
+    currPageNum++;
+    sf_free_header* tmpHeaderList = seg_free_list[FREE_LIST_COUNT-1].head;
+    if(tmpHeaderList== NULL)
+    {
+        seg_free_list[FREE_LIST_COUNT-1].head= sf_sbrk();
+        (seg_free_list[FREE_LIST_COUNT-1].head)->header.allocated= 0;
+        (seg_free_list[FREE_LIST_COUNT-1].head)->header.padded =0;
+        (seg_free_list[FREE_LIST_COUNT-1].head)->header.two_zeroes =0;
+        (seg_free_list[FREE_LIST_COUNT-1].head)->header.block_size = (PAGE_SZ>>4);
+        (seg_free_list[FREE_LIST_COUNT-1].head)->header.unused = 0;
+
+        //footer in sf_header because they have same values
+        ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.allocated = 0;
+        ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.padded=0;
+        ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.two_zeroes=0;
+        ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.block_size= (PAGE_SZ)>>4;
+        ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.unused=0; //requested size
+    }
+    else
+    {
+        sf_free_header* tmpSpace = sf_sbrk();
+        //loop through list because freed block may be in another part of linked list to coalesce
+        while(tmpHeaderList != NULL)
+        {
+            if( ((sf_free_header*)((char*)
+                tmpHeaderList+(tmpHeaderList->header.block_size>>4) )) == tmpSpace)
+            {
+                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) -8))->header.block_size =0; //remove old footer
+                tmpHeaderList->header.block_size = tmpHeaderList->header.block_size+(PAGE_SZ>>4); //set new header block size
+                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.block_size = tmpHeaderList->header.block_size; //adjusted block size
+                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.allocated = 0;
+                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.padded = 0;
+                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.two_zeroes = 0;
+                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.unused = 0; //prevent corruption
+                return;
+            }
+
+            tmpHeaderList = tmpHeaderList->next;
+        } //failed to coalesce because no matching linked block
+        tmpSpace->header.block_size = PAGE_SZ>>4;
+        tmpSpace->header.allocated=0;
+        tmpSpace->header.padded = 0;
+        tmpSpace->header.two_zeroes =0;
+        tmpSpace->header.unused=0;
+        ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.allocated=0;
+        ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.block_size=PAGE_SZ>>4;
+        ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.padded=0;
+        ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.two_zeroes=0;
+        ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.unused=0;
+        tmpHeaderList = seg_free_list[FREE_LIST_COUNT-1].head;
+        tmpHeaderList->prev = tmpSpace;
+        tmpSpace->prev = NULL;
+        tmpSpace->next = tmpHeaderList;
+        seg_free_list[FREE_LIST_COUNT-1].head = tmpSpace;
+    }
+}
 void *sf_malloc(size_t size) {
     if(size==0 || size> ( (PAGE_SZ*4) - 16)) //alloc 16 for header/footer
     {
         sf_errno=EINVAL;    //nivalid num == EINVAL
         return NULL;
     }
-    if(seg_free_list[0].head == NULL && seg_free_list[1].head== NULL && seg_free_list[2].head== NULL
-        && seg_free_list[3].head == NULL)
+    if(get_heap_start() == get_heap_end())
     {
         if(currPageNum<4)
         {
@@ -65,7 +123,7 @@ void *sf_malloc(size_t size) {
     //if(size> (PAGE_SZ * (4-currPageNum) + get))
     if (size <= LIST_1_MAX && size>=LIST_1_MIN)
     {
-        for(int i=0;i<4;i++)
+        for(int i=0;i<FREE_LIST_COUNT;i++)
         {
             if(seg_free_list[i].head != NULL)
             {
@@ -92,7 +150,8 @@ void *sf_malloc(size_t size) {
                         //return payload
                     }
                     tmpHeader = tmpHeader->next;
-                }//if out of loop, check currPages <4
+                }//if out of loop, check currPages <4, may need to trap code into another loop
+                //break out if add more than 4 pages cause no mem
 
                 //loop through all list, if space avail, alloc
                 //check if NULL, if not null, go to beginning of list header
@@ -156,6 +215,10 @@ void sf_free(void *ptr) {
     //check if alloc, if alloc, then manage space + unalloc + free
     //move into free_list
     //combine coalesce by checking if upper is same address
+
+    //when coalescing, check if memory address of next block is allocated or freed
+    //if freed, then combine, check new size of block, allocate into right
+    //free list, remove old freed block from the previous free list
 
 	return;
 }
