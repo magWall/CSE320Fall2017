@@ -6,8 +6,8 @@ int main(int argc, char const *argv[]) {
     sf_mem_init();
 
     double* ptr = sf_malloc(sizeof(double));
-
     *ptr = 320320320e-320;
+    sf_blockprint(ptr);
 
     printf("%f\n", *ptr);
 

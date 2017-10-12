@@ -122,59 +122,114 @@ void *sf_malloc(size_t size) {
     }
     //if(size> (PAGE_SZ * (4-currPageNum) + get))
 
-
     int paddedSize = size%16;
-    if (size <= LIST_1_MAX && size>=LIST_1_MIN)
-    {
 
-        for(int i=0;i<FREE_LIST_COUNT;i++)
+        while(currPageNum<4)
         {
-            if(seg_free_list[i].head != NULL)
+            int i = findListIdxofNum(size+paddedSize+16);
+            for( ;i<FREE_LIST_COUNT;i++) //am I evolving?! I finally used ;!
             {
-                sf_free_header* tmpHeader = seg_free_list[i].head;
-                while(tmpHeader !=NULL)
+                if(seg_free_list[i].head != NULL)
                 {
-                    if( (tmpHeader->header.block_size<<4) >(size+16+paddedSize) )//add 16 bytes for header and footer
+                    sf_free_header* tmpHeader = seg_free_list[i].head;
+                    while(tmpHeader !=NULL)
                     {
-                        tmpHeader->header.allocated = 1;
-                        if( (tmpHeader->header.block_size <<4)-(paddedSize+size+16)>LIST_1_MIN)//if new block can be formed
+                        if( (tmpHeader->header.block_size<<4) >(size+16+paddedSize) )//add 16 bytes for header and footer
                         {
-                            //unsplit block [ ][ this block ] footer
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=0;
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.unused=0;
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.two_zeroes=0;
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.padded=0;
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.block_size=((tmpHeader->header.block_size<<4)-(size+16+paddedSize))>>4;
-                            //split block
-
-                            if(paddedSize!=0)
+                            tmpHeader->header.allocated = 1;
+                            if( (tmpHeader->header.block_size <<4)-(paddedSize+size+16)>LIST_1_MIN)//if new block can be formed
                             {
-                                tmpHeader->header.padded=1;
-                                ((sf_free_header*)((char*)tmpHeader+paddedSize+size+8 ))->header.padded=1;
+                                //unsplit block [ ][ this block ] footer
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=0;
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.unused=0;
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.two_zeroes=0;
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.padded=0;
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.block_size=((tmpHeader->header.block_size<<4)-(size+16+paddedSize))>>4;
+                                //split block
+
+                                if(paddedSize!=0)
+                                {
+                                    tmpHeader->header.padded=1;
+                                    ((sf_free_header*)((char*)tmpHeader+paddedSize+size+8 ))->header.padded=1;
+                                }
+                                else
+                                {
+                                    tmpHeader->header.padded=0;
+                                    ((sf_free_header*)((char*)tmpHeader+paddedSize+size+8 ))->header.padded=0;
+                                }
+                                //original  [] [this block] header
+                                ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.allocated=0;
+                                //((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.unused=0;
+                                ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.two_zeroes=0;
+                                ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.padded=0;
+                                ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.block_size=((tmpHeader->header.block_size<<4)-(size+16+paddedSize))>>4;
+
+                                tmpHeader->header.block_size= (size+16+paddedSize)>>4;
+                                tmpHeader->header.two_zeroes=0;
+                                // split [this block] [] footer
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=0;
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.unused=size;//requested size
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.two_zeroes=0;
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.padded=0;
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.block_size=(size+16+paddedSize)>>4;
+
+                                //new point to split block, update
+                                sf_free_header* freeBlock = ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16));
+                                if(tmpHeader->prev != NULL) //remove from old list
+                                {
+                                    tmpHeader->prev->next = tmpHeader->next;
+                                    if(tmpHeader->next!=NULL)
+                                    {
+                                        tmpHeader->next->prev = tmpHeader->prev;
+                                        tmpHeader->next = NULL;  //remove connections
+                                    }
+                                    tmpHeader->prev = NULL;//remove connections
+
+                                }
+                                else //is null, so nothing behind, first on list
+                                {
+                                    if(tmpHeader->next!=NULL)
+                                    {
+                                        tmpHeader->next->prev = tmpHeader->prev;//or NULL
+                                        //set as new head
+                                        seg_free_list[i].head = tmpHeader->next;
+                                        tmpHeader->next = NULL;
+                                    }
+                                    else //both null, only one in list
+                                        seg_free_list[i].head = NULL;
+
+                                }
+                                int idxNum = findListIdxofNum(freeBlock->header.block_size<<4);
+                                if(seg_free_list[idxNum].head!= NULL)
+                                {
+                                    seg_free_list[idxNum].head->prev = freeBlock;
+                                    freeBlock->next = seg_free_list[idxNum].head;
+                                    freeBlock->prev = NULL;
+                                    seg_free_list[idxNum].head = freeBlock;
+                                }
+                                else //head is null, just add block in
+                                    seg_free_list[idxNum].head = freeBlock;
+
+                                return (char*)tmpHeader+8;
+
                             }
-                            else
+                            else //don't split block
                             {
-                                tmpHeader->header.padded=0;
-                                ((sf_free_header*)((char*)tmpHeader+paddedSize+size+8 ))->header.padded=0;
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=1;
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.unused=size;//requested size
+
+                                if(paddedSize!=0)
+                                {
+                                    tmpHeader->header.padded=1;
+                                    ((sf_free_header*)((char*)tmpHeader+(tmpHeader->header.block_size<<4)-8 ))->header.padded=1;
+                                }
+                                else
+                                {
+                                    tmpHeader->header.padded=0;
+                                    ((sf_free_header*)((char*)tmpHeader+(tmpHeader->header.block_size<<4)-8 ))->header.padded=0;
+                                }
                             }
-                            //original  [] [this block] header
-                            ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.allocated=0;
-                            //((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.unused=0;
-                            ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.two_zeroes=0;
-                            ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.padded=0;
-                            ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.block_size=((tmpHeader->header.block_size<<4)-(size+16+paddedSize))>>4;
-
-                            tmpHeader->header.block_size= (size+16+paddedSize)>>4;
-                            tmpHeader->header.two_zeroes=0;
-                            // split [this block] [] footer
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=0;
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.unused=size;//requested size
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.two_zeroes=0;
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.padded=0;
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.block_size=(size+16+paddedSize)>>4;
-
-                            //new point to split block, update
-                            sf_free_header* freeBlock = ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16));
+                            //update
                             if(tmpHeader->prev != NULL) //remove from old list
                             {
                                 tmpHeader->prev->next = tmpHeader->next;
@@ -195,114 +250,56 @@ void *sf_malloc(size_t size) {
                                     seg_free_list[i].head = tmpHeader->next;
                                     tmpHeader->next = NULL;
                                 }
-                                else //both null, only one in list
+                                else
                                     seg_free_list[i].head = NULL;
 
                             }
-                            int idxNum = findListIdxofNum(freeBlock->header.block_size>>4);
-                            if(seg_free_list[idxNum].head!= NULL)
-                            {
-                                seg_free_list[idxNum].head->prev = freeBlock;
-                                freeBlock->next = seg_free_list[idxNum].head;
-                                freeBlock->prev = NULL;
-                                seg_free_list[idxNum].head = freeBlock;
-                            }
-                            else //head is null, just add block in
-                                seg_free_list[idxNum].head = freeBlock;
-
+                            //return payload
                             return (char*)tmpHeader+8;
-
                         }
-                        else //don't split block
-                        {
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=1;
-                            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.unused=size;//requested size
+                        tmpHeader = tmpHeader->next;
+                    }//if out of loop, check currPages <4, may need to trap code into another loop
+                    //break out if add more than 4 pages cause no mem
 
-                            if(paddedSize!=0)
-                            {
-                                tmpHeader->header.padded=1;
-                                ((sf_free_header*)((char*)tmpHeader+(tmpHeader->header.block_size<<4)-8 ))->header.padded=1;
-                            }
-                            else
-                            {
-                                tmpHeader->header.padded=0;
-                                ((sf_free_header*)((char*)tmpHeader+(tmpHeader->header.block_size<<4)-8 ))->header.padded=0;
-                            }
-                        }
-                        //update
-                        if(tmpHeader->prev != NULL) //remove from old list
-                        {
-                            tmpHeader->prev->next = tmpHeader->next;
-                            if(tmpHeader->next!=NULL)
-                            {
-                                tmpHeader->next->prev = tmpHeader->prev;
-                                tmpHeader->next = NULL;  //remove connections
-                            }
-                            tmpHeader->prev = NULL;//remove connections
+                    //loop through all list, if space avail, alloc
+                    //check if NULL, if not null, go to beginning of list header
 
-                        }
-                        else //is null, so nothing behind, first on list
-                        {
-                            if(tmpHeader->next!=NULL)
-                            {
-                                tmpHeader->next->prev = tmpHeader->prev;//or NULL
-                                //set as new head
-                                seg_free_list[i].head = tmpHeader->next;
-                                tmpHeader->next = NULL;
-                            }
-                            else
-                                seg_free_list[i].head = NULL;
-
-                        }
-                        //return payload
-                        return (char*)tmpHeader+8;
-                    }
-                    tmpHeader = tmpHeader->next;
-                }//if out of loop, check currPages <4, may need to trap code into another loop
-                //break out if add more than 4 pages cause no mem
-
-                //loop through all list, if space avail, alloc
-                //check if NULL, if not null, go to beginning of list header
-
-            }
+                }
             //if seg_free_list[3] or all == NULL/not enough space,
             //check and (loop) add & coalesce until space
+            }
+            if(currPageNum!=4)
+                add_page();
+            else
+            {
+                sf_errno = ENOMEM;
+                return NULL;
+            }
         }
+
 
         //header cause that's the 'first fit' , then move prev around
         //alloc space, else look for bigger sizes
         //bigger sizes need to readjust header + footer, and if size <the list_#_min
         //move it to the appropriate list or alloc all of it over
-    }
-    else if (size <= LIST_2_MAX && size>=LIST_2_MIN)
-    {
-
-    }
-    else if (size <= LIST_3_MAX && size>=LIST_3_MIN)
-    {
-
-    }
-    else if (size >= LIST_3_MIN)
-    {
 
         //if list not null and size not enough but you can get more pages
         //get another page and if ptr+sizeofblock == sf_breaks ptr address, coalesce
         //else just add into list
-    }
-
 
     return NULL;
 }
 int findListIdxofNum(int num)
 {
-    if(num>LIST_1_MIN && num<LIST_1_MAX)
+    if(num>=LIST_1_MIN && num<=LIST_1_MAX)
         return 0;
-    else if(num>LIST_2_MIN && num<LIST_2_MAX)
+    else if(num>=LIST_2_MIN && num<=LIST_2_MAX)
         return 1;
-    else if(num>LIST_3_MIN && num<LIST_3_MAX)
+    else if(num>=LIST_3_MIN && num<=LIST_3_MAX)
         return 2;
-    else if(num>LIST_4_MIN)
+    else if(num>=LIST_4_MIN)
         return 3;
+    return -1;
 }
 
 
