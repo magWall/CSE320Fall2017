@@ -331,6 +331,35 @@ void sf_free(void *ptr) {
     // if invalid ptr, abort
     if (ptr == NULL)
         abort();
+    if(  ((void*)((char*)ptr -8)) < get_heap_start() )
+        abort();
+    sf_free_header* tmpPtr = ((sf_free_header*)((char*)ptr -8));
+    int ptrBlockSize = tmpPtr->header.block_size;
+    if( ((void*)((char*)tmpPtr+ptrBlockSize)) > get_heap_end())
+        abort();
+    int tmpRequestedBits = ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.unused;
+    int padded = tmpPtr->header.padded;
+    if(padded != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.padded)
+        abort();
+    if(ptrBlockSize != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.block_size)
+        abort();
+    int allocatedBit = tmpPtr->header.allocated;
+    if(allocatedBit == 0 || ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.allocated ==0
+         || allocatedBit != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.allocated)
+    {
+        abort();
+    }
+    if(padded!=0)
+    {
+        if(tmpRequestedBits+16 == ptrBlockSize)
+            abort(); //there should be padding here since pad flag raised
+    }
+    else if(padded==0)
+    {
+        if(tmpRequestedBits+16!= ptrBlockSize)
+            abort(); //padding should exist here
+    }
+
     //ptr is payload
 
     //check if alloc, if not abort
