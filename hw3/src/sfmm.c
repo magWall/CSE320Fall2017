@@ -400,13 +400,111 @@ void sf_free(void *ptr) {
     tmpPtr->header.padded = 0;
     tmpPtr->header.allocated=0;
     tmpPtr->header.two_zeroes=0;
-    ((sf_free_header*)((char*)tmpPtr+(tmpPtr->header.block_size<<4) -8))->header.allocated=0;
-    ((sf_free_header*)((char*)tmpPtr+(tmpPtr->header.block_size<<4) -8))->header.padded=0;
-    ((sf_free_header*)((char*)tmpPtr+(tmpPtr->header.block_size<<4) -8))->header.two_zeroes=0;
-    ((sf_free_header*)((char*)tmpPtr+(tmpPtr->header.block_size<<4) -8))->header.unused=0;//requested_size
-    //change block size if can coalesce, if can't coalesce, add to list
-    //coalesce with one higher mem address, aka footer
+    ((sf_free_header*)((char*)tmpPtr+ptrBlockSize -8))->header.allocated=0;
+    ((sf_free_header*)((char*)tmpPtr+ptrBlockSize -8))->header.padded=0;
+    ((sf_free_header*)((char*)tmpPtr+ptrBlockSize -8))->header.two_zeroes=0;
+    ((sf_free_header*)((char*)tmpPtr+ptrBlockSize -8))->header.unused=0;//requested_size
 
+    if( ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.allocated==0)
+    {
+        sf_free_header* tmpHeader;
+        for(int i= 0;i<FREE_LIST_COUNT;i++)
+        {
+            tmpHeader = seg_free_list[i].head;
+            while(tmpHeader != NULL)
+            {
+                if(tmpHeader == ((sf_free_header*)((char*)tmpPtr+ptrBlockSize)) )//same position, so next block
+                {
+                    //of higher address
+                    if(tmpHeader->header.allocated==0) //if statement probably redundant
+                    {
+                        //editing old footer
+                        ((sf_free_header*)((char*)tmpHeader+(tmpHeader->header.block_size<<4)-8))->header.block_size = ((tmpHeader->header.block_size<<4) +ptrBlockSize)>>4;
+                        //edit new header to temporarily change values
+                        tmpHeader->header.block_size= (ptrBlockSize+(tmpHeader->header.block_size<<4))>>4;
+                        //edit old blocksize of original header
+                        ((sf_free_header*)((char*)tmpPtr+ptrBlockSize -8))->header.block_size=0;//remove old block_size
+                        tmpPtr->header.block_size =tmpHeader->header.block_size;//update new size
+                        tmpHeader->header.block_size = 0; //remove temporary old header
+                        //after edit, check to see if size fits, or need to switch lists
+                        int listIdxOfNewSize = findListIdxofNum( (tmpPtr->header.block_size<<4) );
+                        if(listIdxOfNewSize==i)//matching idx
+                        {
+                            tmpPtr->next = tmpHeader->next;
+                            tmpPtr->prev = tmpHeader->prev;
+                            if(tmpHeader->prev!=NULL)
+                            {
+                                if(tmpHeader->next== NULL)//last in list
+                                {
+                                    tmpHeader->prev->next= tmpPtr;
+                                }
+                                else //middle in list
+                                {
+                                    tmpHeader->prev->next= tmpPtr;
+                                    tmpHeader->next->prev = tmpPtr;
+                                }
+                            }
+                            else //tmpHeader->prev==NULL
+                            {
+                                if(tmpHeader->next==NULL) //only one
+                                {
+                                    seg_free_list[i].head= tmpPtr;
+                                }
+                                else //first in list
+                                {
+                                    tmpHeader->next->prev = tmpPtr;
+                                }
+                            }
+                            tmpHeader->prev = NULL;
+                            tmpHeader->next = NULL;
+                            return;
+                        }
+                        else //move the whole block somewhere else
+                        {
+                            if(tmpHeader->prev != NULL)
+                            {
+                                if(tmpHeader->next==NULL)
+                                {
+                                    tmpHeader->prev->next = NULL;
+                                }
+                                else //in middle of list
+                                {
+                                    tmpHeader->prev->next = tmpHeader->next;
+                                    tmpHeader->next->prev = tmpHeader->prev;
+                                }
+                            }
+                            else
+                            {
+                                if(tmpHeader->next == NULL)
+                                {
+                                    seg_free_list[i].head = NULL;
+                                }
+                                else
+                                {
+                                    tmpHeader->next->prev = NULL;
+                                    seg_free_list[i].head = tmpHeader->next;
+                                }
+                            }
+                            tmpHeader->prev = NULL;
+                            tmpHeader->next = NULL;
+                            tmpPtr->next = seg_free_list[listIdxOfNewSize].head;
+                            tmpPtr->prev= NULL;
+                            seg_free_list[listIdxOfNewSize].head->prev = tmpPtr;
+                            seg_free_list[listIdxOfNewSize].head = tmpPtr;
+                            return;
+                        }
+                        //if fit, place tmpPtr as new address from prev & next
+                        //if no fit, check for new list fit
+                    }
+                }
+                tmpHeader =  tmpHeader->next;
+            }
+
+        }
+        //change block size if can coalesce, check if still in bounds of proper list, if can't coalesce, add to list
+        //coalesce with one higher mem address, aka footer
+
+    }
 
     //ptr is payload
 
