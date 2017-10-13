@@ -124,7 +124,7 @@ void *sf_malloc(size_t size) {
 
     int paddedSize = size%16;
 
-        while(currPageNum<4)
+        while(currPageNum<=4)
         {
             int i = findListIdxofNum(size+(16-paddedSize)+16);
             for( ;i<FREE_LIST_COUNT;i++) //am I evolving?! I finally used ;!
@@ -377,7 +377,7 @@ void sf_free(void *ptr) {
     int padded = tmpPtr->header.padded;
     if(padded != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.padded)
         abort();
-    if(ptrBlockSize != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.block_size)
+    if(ptrBlockSize != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.block_size<<4)
         abort();
     int allocatedBit = tmpPtr->header.allocated;
     if(allocatedBit == 0 || ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.allocated ==0
@@ -455,9 +455,6 @@ void sf_free(void *ptr) {
                                     tmpHeader->next->prev = tmpPtr;
                                 }
                             }
-                            tmpHeader->prev = NULL;
-                            tmpHeader->next = NULL;
-                            return;
                         }
                         else //move the whole block somewhere else
                         {
@@ -485,16 +482,18 @@ void sf_free(void *ptr) {
                                     seg_free_list[i].head = tmpHeader->next;
                                 }
                             }
-                            tmpHeader->prev = NULL;
-                            tmpHeader->next = NULL;
                             tmpPtr->next = seg_free_list[listIdxOfNewSize].head;
                             tmpPtr->prev= NULL;
-                            seg_free_list[listIdxOfNewSize].head->prev = tmpPtr;
+
+                            if(seg_free_list[listIdxOfNewSize].head != NULL)
+                                seg_free_list[listIdxOfNewSize].head->prev = tmpPtr;
                             seg_free_list[listIdxOfNewSize].head = tmpPtr;
-                            return;
                         }
                         //if fit, place tmpPtr as new address from prev & next
                         //if no fit, check for new list fit
+                        tmpHeader->prev = NULL;
+                        tmpHeader->next = NULL;
+                        return;
                     }
                 }
                 tmpHeader =  tmpHeader->next;
@@ -504,6 +503,16 @@ void sf_free(void *ptr) {
         //change block size if can coalesce, check if still in bounds of proper list, if can't coalesce, add to list
         //coalesce with one higher mem address, aka footer
 
+    }
+    else //cannot combine, so store elsewhere
+    {
+        int listIdxOfNewSize = findListIdxofNum( (tmpPtr->header.block_size<<4) );
+        tmpPtr->next = seg_free_list[listIdxOfNewSize].head;
+        tmpPtr->prev = NULL;
+        if(seg_free_list[listIdxOfNewSize].head != NULL)
+           seg_free_list[listIdxOfNewSize].head->prev = tmpPtr;
+        seg_free_list[listIdxOfNewSize].head = tmpPtr;
+        return;
     }
 
     //ptr is payload
