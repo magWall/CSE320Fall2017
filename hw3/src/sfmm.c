@@ -27,60 +27,142 @@ int currPageNum = 0; // 1 to 3
 void add_page() //assuming you can add a page
 {
     currPageNum++;
-    sf_free_header* tmpHeaderList = seg_free_list[FREE_LIST_COUNT-1].head;
-    if(tmpHeaderList== NULL)
-    {
-        seg_free_list[FREE_LIST_COUNT-1].head= sf_sbrk();
-        (seg_free_list[FREE_LIST_COUNT-1].head)->header.allocated= 0;
-        (seg_free_list[FREE_LIST_COUNT-1].head)->header.padded =0;
-        (seg_free_list[FREE_LIST_COUNT-1].head)->header.two_zeroes =0;
-        (seg_free_list[FREE_LIST_COUNT-1].head)->header.block_size = (PAGE_SZ>>4);
-        (seg_free_list[FREE_LIST_COUNT-1].head)->header.unused = 0;
+    int listIdxToAddPg = findListIdxofNum(PAGE_SZ); //correct place to add sf_sbrk if no coalesce
+    //might have to coalesce, and then after finding the page, if block
+    //does not belong, move block to new list to righ size
 
-        //footer in sf_header because they have same values
-        ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.allocated = 0;
-        ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.padded=0;
-        ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.two_zeroes=0;
-        ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.block_size= (PAGE_SZ)>>4;
-        ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.unused=0; //requested size
-    }
-    else
+    sf_free_header* tmpPtr = sf_sbrk();
+    tmpPtr->header.allocated=0;
+    tmpPtr->header.padded=0;
+    tmpPtr->header.two_zeroes=0;
+    tmpPtr->header.block_size=(PAGE_SZ>>4);
+    tmpPtr->header.unused=0;
+    ((sf_free_header*)((char*)tmpPtr+PAGE_SZ -8))->header.allocated=0;
+    ((sf_free_header*)((char*)tmpPtr+PAGE_SZ -8))->header.padded=0;
+    ((sf_free_header*)((char*)tmpPtr+PAGE_SZ -8))->header.two_zeroes=0;
+    ((sf_free_header*)((char*)tmpPtr+PAGE_SZ -8))->header.block_size= (PAGE_SZ>>4);
+    ((sf_free_header*)((char*)tmpPtr+PAGE_SZ -8))->header.unused=0;
+    sf_free_header* tmpHeader;
+    for(int i= 0;i<FREE_LIST_COUNT;i++)
     {
-        sf_free_header* tmpSpace = sf_sbrk();
-        //loop through list because freed block may be in another part of linked list to coalesce
-        while(tmpHeaderList != NULL)
+        tmpHeader = seg_free_list[i].head;
+        while(tmpHeader != NULL)
         {
-            if( ((sf_free_header*)((char*)
-                tmpHeaderList+(tmpHeaderList->header.block_size>>4) )) == tmpSpace)
+            if(  ((sf_free_header*)((char*)tmpHeader + (tmpHeader->header.block_size<<4)) )== tmpPtr )
             {
-                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) -8))->header.block_size =0; //remove old footer
-                tmpHeaderList->header.block_size = tmpHeaderList->header.block_size+(PAGE_SZ>>4); //set new header block size
-                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.block_size = tmpHeaderList->header.block_size; //adjusted block size
-                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.allocated = 0;
-                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.padded = 0;
-                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.two_zeroes = 0;
-                ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.unused = 0; //prevent corruption
-                return;
-            }
+                if(tmpHeader->header.allocated==0)
+                {
+                    //coalesce
+                    ((sf_free_header*)((char*)tmpHeader+(tmpHeader->header.block_size<<4)-8 ))->header.block_size = 0;
+                    tmpPtr->header.block_size=0;
+                    ((sf_free_header*)((char*)tmpPtr+PAGE_SZ -8))->header.block_size= (PAGE_SZ + (tmpHeader->header.block_size<<4) )>>4;
+                    tmpHeader->header.block_size = ( (tmpHeader->header.block_size<<4) +PAGE_SZ)>>4;
+                    int newListIdx = findListIdxofNum( (tmpHeader->header.block_size<<4) );
+                    // if(newListIdx != i)
+                    // {
+                        if(tmpHeader->prev != NULL)
+                        {
+                            tmpHeader->prev->next = tmpHeader->next;
+                            if(tmpHeader->next != NULL)
+                                tmpHeader->next->prev = tmpHeader->prev;
+                        }
+                        else
+                        {
+                            if(tmpHeader->next == NULL)
+                            {
+                                //only one in here
+                                seg_free_list[i].head = NULL;
+                            }
+                            else
+                            {
+                                tmpHeader->next->prev= NULL;
+                                seg_free_list[i].head = tmpHeader->next;
+                            }
+                        }
+                        tmpHeader->next = seg_free_list[newListIdx].head;
+                        tmpHeader->prev = NULL;
+                        if(seg_free_list[newListIdx].head != NULL)
+                            seg_free_list[newListIdx].head->prev = tmpHeader;
+                        seg_free_list[newListIdx].head = tmpHeader;
+                        return;
 
-            tmpHeaderList = tmpHeaderList->next;
-        } //failed to coalesce because no matching linked block
-        tmpSpace->header.block_size = PAGE_SZ>>4;
-        tmpSpace->header.allocated=0;
-        tmpSpace->header.padded = 0;
-        tmpSpace->header.two_zeroes =0;
-        tmpSpace->header.unused=0;
-        ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.allocated=0;
-        ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.block_size=PAGE_SZ>>4;
-        ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.padded=0;
-        ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.two_zeroes=0;
-        ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.unused=0;
-        tmpHeaderList = seg_free_list[FREE_LIST_COUNT-1].head;
-        tmpHeaderList->prev = tmpSpace;
-        tmpSpace->prev = NULL;
-        tmpSpace->next = tmpHeaderList;
-        seg_free_list[FREE_LIST_COUNT-1].head = tmpSpace;
+                    //}
+                    //else condition here does not exist because we coalesce only lower address
+                    //if same, header doesn't change
+                }
+                else//add separately
+                {
+                    tmpPtr->next = seg_free_list[listIdxToAddPg].head;
+                    tmpPtr->prev = NULL;
+                    if(seg_free_list[listIdxToAddPg].head != NULL)
+                        seg_free_list[listIdxToAddPg].head->prev = tmpPtr;
+                    seg_free_list[listIdxToAddPg].head = tmpPtr;
+                    return;
+                }
+            }
+            tmpHeader = tmpHeader->next;
+        }
     }
+
+
+
+
+
+    // ///////////////////////////////////////////////////////////////////////////////////////////
+    // sf_free_header* tmpHeaderList = seg_free_list[listIdxToAddPg].head;
+    // if(tmpHeaderList== NULL)
+    // {
+    //     seg_free_list[listIdxToAddPg].head= sf_sbrk();
+    //     (seg_free_list[listIdxToAddPg].head)->header.allocated= 0;
+    //     (seg_free_list[listIdxToAddPg].head)->header.padded =0;
+    //     (seg_free_list[listIdxToAddPg].head)->header.two_zeroes =0;
+    //     (seg_free_list[listIdxToAddPg].head)->header.block_size = (PAGE_SZ>>4);
+    //     (seg_free_list[listIdxToAddPg].head)->header.unused = 0;
+
+    //     //footer in sf_header because they have same values
+    //     ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.allocated = 0;
+    //     ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.padded=0;
+    //     ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.two_zeroes=0;
+    //     ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.block_size= (PAGE_SZ)>>4;
+    //     ((sf_free_header*)((char*)seg_free_list[FREE_LIST_COUNT-1].head + PAGE_SZ - 8))->header.unused=0; //requested size
+    // }
+    // else
+    // {
+    //     sf_free_header* tmpSpace = sf_sbrk();
+    //     //loop through list because freed block may be in another part of linked list to coalesce
+    //     while(tmpHeaderList != NULL)
+    //     {
+    //         if( ((sf_free_header*)((char*)
+    //             tmpHeaderList+(tmpHeaderList->header.block_size>>4) )) == tmpSpace)
+    //         {
+    //             ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) -8))->header.block_size =0; //remove old footer
+    //             tmpHeaderList->header.block_size = tmpHeaderList->header.block_size+(PAGE_SZ>>4); //set new header block size
+    //             ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.block_size = tmpHeaderList->header.block_size; //adjusted block size
+    //             ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.allocated = 0;
+    //             ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.padded = 0;
+    //             ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.two_zeroes = 0;
+    //             ((sf_free_header*)((char*) tmpHeaderList+(tmpHeaderList->header.block_size<<4) - 8))->header.unused = 0; //prevent corruption
+    //             return;
+    //         }
+
+    //         tmpHeaderList = tmpHeaderList->next;
+    //     } //failed to coalesce because no matching linked block
+    //     tmpSpace->header.block_size = PAGE_SZ>>4;
+    //     tmpSpace->header.allocated=0;
+    //     tmpSpace->header.padded = 0;
+    //     tmpSpace->header.two_zeroes =0;
+    //     tmpSpace->header.unused=0;
+    //     ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.allocated=0;
+    //     ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.block_size=PAGE_SZ>>4;
+    //     ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.padded=0;
+    //     ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.two_zeroes=0;
+    //     ((sf_free_header*)((char*)tmpSpace+PAGE_SZ-8))->header.unused=0;
+    //     tmpHeaderList = seg_free_list[FREE_LIST_COUNT-1].head;
+    //     tmpHeaderList->prev = tmpSpace;
+    //     tmpSpace->prev = NULL;
+    //     tmpSpace->next = tmpHeaderList;
+    //     seg_free_list[FREE_LIST_COUNT-1].head = tmpSpace;
+    // }
 }
 void *sf_malloc(size_t size) {
     if(size==0 || size> ( (PAGE_SZ*4)) ) //alloc 16 for header/footer
@@ -428,36 +510,6 @@ void sf_free(void *ptr) {
                         tmpHeader->header.block_size = 0; //remove temporary old header
                         //after edit, check to see if size fits, or need to switch lists
                         int listIdxOfNewSize = findListIdxofNum( (tmpPtr->header.block_size<<4) );
-                        if(listIdxOfNewSize==i)//matching idx
-                        {
-                            tmpPtr->next = tmpHeader->next;
-                            tmpPtr->prev = tmpHeader->prev;
-                            if(tmpHeader->prev!=NULL)
-                            {
-                                if(tmpHeader->next== NULL)//last in list
-                                {
-                                    tmpHeader->prev->next= tmpPtr;
-                                }
-                                else //middle in list
-                                {
-                                    tmpHeader->prev->next= tmpPtr;
-                                    tmpHeader->next->prev = tmpPtr;
-                                }
-                            }
-                            else //tmpHeader->prev==NULL
-                            {
-                                if(tmpHeader->next==NULL) //only one
-                                {
-                                    seg_free_list[i].head= tmpPtr;
-                                }
-                                else //first in list
-                                {
-                                    tmpHeader->next->prev = tmpPtr;
-                                }
-                            }
-                        }
-                        else //move the whole block somewhere else
-                        {
                             if(tmpHeader->prev != NULL)
                             {
                                 if(tmpHeader->next==NULL)
@@ -488,8 +540,6 @@ void sf_free(void *ptr) {
                             if(seg_free_list[listIdxOfNewSize].head != NULL)
                                 seg_free_list[listIdxOfNewSize].head->prev = tmpPtr;
                             seg_free_list[listIdxOfNewSize].head = tmpPtr;
-                        }
-                        //if fit, place tmpPtr as new address from prev & next
                         //if no fit, check for new list fit
                         tmpHeader->prev = NULL;
                         tmpHeader->next = NULL;
