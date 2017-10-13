@@ -83,7 +83,7 @@ void add_page() //assuming you can add a page
     }
 }
 void *sf_malloc(size_t size) {
-    if(size==0 || size> ( (PAGE_SZ*4) - 16)) //alloc 16 for header/footer
+    if(size==0 || size> ( (PAGE_SZ*4)) ) //alloc 16 for header/footer
     {
         sf_errno=EINVAL;    //nivalid num == EINVAL
         return NULL;
@@ -137,7 +137,7 @@ void *sf_malloc(size_t size) {
                         if( (tmpHeader->header.block_size<<4) >(size+16+(16-paddedSize)) )//add 16 bytes for header and footer
                         {
                             tmpHeader->header.allocated = 1;
-                            if( (tmpHeader->header.block_size <<4)-((16-paddedSize)+size+16)>LIST_1_MIN)//if new block can be formed
+                            if( (tmpHeader->header.block_size <<4)-((16-paddedSize)+size+16)>32)//if new block can be formed , 32 is lowest byte available
                             {
                                 //unsplit block [ ][ this block ] footer
                                 ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=0;
@@ -296,14 +296,50 @@ void *sf_malloc(size_t size) {
 }
 int findListIdxofNum(int num)
 {
-    if(num>=LIST_1_MIN && num<=LIST_1_MAX)
-        return 0;
-    else if(num>=LIST_2_MIN && num<=LIST_2_MAX)
-        return 1;
-    else if(num>=LIST_3_MIN && num<=LIST_3_MAX)
-        return 2;
-    else if(num>=LIST_4_MIN)
-        return 3;
+    if(LIST_1_MAX==-1)
+    {
+        if(num>=LIST_2_MIN && num<=LIST_2_MAX)
+            return 1;
+        else if(num>=LIST_3_MIN && num<LIST_3_MAX)
+            return 2;
+        else if(num>=LIST_4_MIN && num<=LIST_4_MAX)
+            return 3;
+        else if(LIST_1_MIN)
+            return 0;
+    }
+    else if(LIST_2_MAX==-1)
+    {
+        if(num>=LIST_1_MIN && num<=LIST_1_MAX)
+            return 0;
+        else if(num>=LIST_3_MIN && num<LIST_3_MAX)
+            return 2;
+        else if(num>=LIST_4_MIN && num<=LIST_4_MAX)
+            return 3;
+        else if(LIST_2_MIN)
+            return 1;
+    }
+    else if(LIST_3_MAX ==-1)
+    {
+        if(num>=LIST_1_MIN && num<=LIST_1_MAX)
+            return 0;
+        else if(num>=LIST_2_MIN && num<=LIST_2_MAX)
+            return 1;
+        else if(num>=LIST_4_MIN && num<=LIST_4_MAX)
+            return 3;
+        else if(num>=LIST_3_MIN)
+            return 2;
+    }
+    else //LIST_4_MAX
+    {
+        if(num>=LIST_1_MIN && num<=LIST_1_MAX)
+            return 0;
+        else if(num>=LIST_2_MIN && num<=LIST_2_MAX)
+            return 1;
+        else if(num>=LIST_3_MIN && num<=LIST_3_MAX)
+            return 2;
+        else if(num>=LIST_4_MIN)
+            return 3;
+    }
     return -1;
 }
 
@@ -334,18 +370,18 @@ void sf_free(void *ptr) {
     if(  ((void*)((char*)ptr -8)) < get_heap_start() )
         abort();
     sf_free_header* tmpPtr = ((sf_free_header*)((char*)ptr -8));
-    int ptrBlockSize = tmpPtr->header.block_size;
+    int ptrBlockSize = tmpPtr->header.block_size<<4;
     if( ((void*)((char*)tmpPtr+ptrBlockSize)) > get_heap_end())
         abort();
-    int tmpRequestedBits = ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.unused;
+    int tmpRequestedBits = ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.unused;
     int padded = tmpPtr->header.padded;
-    if(padded != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.padded)
+    if(padded != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.padded)
         abort();
-    if(ptrBlockSize != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.block_size)
+    if(ptrBlockSize != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.block_size)
         abort();
     int allocatedBit = tmpPtr->header.allocated;
-    if(allocatedBit == 0 || ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.allocated ==0
-         || allocatedBit != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize))->header.allocated)
+    if(allocatedBit == 0 || ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.allocated ==0
+         || allocatedBit != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.allocated)
     {
         abort();
     }
@@ -359,6 +395,18 @@ void sf_free(void *ptr) {
         if(tmpRequestedBits+16!= ptrBlockSize)
             abort(); //padding should exist here
     }
+    // valid,now free
+
+    tmpPtr->header.padded = 0;
+    tmpPtr->header.allocated=0;
+    tmpPtr->header.two_zeroes=0;
+    ((sf_free_header*)((char*)tmpPtr+(tmpPtr->header.block_size<<4) -8))->header.allocated=0;
+    ((sf_free_header*)((char*)tmpPtr+(tmpPtr->header.block_size<<4) -8))->header.padded=0;
+    ((sf_free_header*)((char*)tmpPtr+(tmpPtr->header.block_size<<4) -8))->header.two_zeroes=0;
+    ((sf_free_header*)((char*)tmpPtr+(tmpPtr->header.block_size<<4) -8))->header.unused=0;//requested_size
+    //change block size if can coalesce, if can't coalesce, add to list
+    //coalesce with one higher mem address, aka footer
+
 
     //ptr is payload
 
