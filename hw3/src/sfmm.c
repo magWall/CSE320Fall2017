@@ -110,7 +110,7 @@ void *sf_malloc(size_t size) {
 
             currPageNum++;
             //block_size is measured in hex, the remaining are in bits
-            sf_blockprint(seg_free_list[3].head);
+            //sf_blockprint(seg_free_list[3].head);
 
         }
         else
@@ -159,7 +159,7 @@ void *sf_malloc(size_t size) {
                                 }
                                 //original  [] [this block] header
                                 ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.allocated=0;
-                                //((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.unused=0;
+                                ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.unused=0;
                                 ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.two_zeroes=0;
                                 ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.padded=0;
                                 ((sf_free_header*)((char*)tmpHeader+ paddedSize+size+16 ))->header.block_size=((tmpHeader->header.block_size<<4)-(size+16+paddedSize))>>4;
@@ -167,10 +167,9 @@ void *sf_malloc(size_t size) {
                                 tmpHeader->header.block_size= (size+16+paddedSize)>>4;
                                 tmpHeader->header.two_zeroes=0;
                                 // split [this block] [] footer
-                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=0;
+                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=1;
                                 ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.unused=size;//requested size
                                 ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.two_zeroes=0;
-                                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.padded=0;
                                 ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.block_size=(size+16+paddedSize)>>4;
 
                                 //new point to split block, update
@@ -208,9 +207,14 @@ void *sf_malloc(size_t size) {
                                     seg_free_list[idxNum].head = freeBlock;
                                 }
                                 else //head is null, just add block in
+                                {
                                     seg_free_list[idxNum].head = freeBlock;
+                                    freeBlock->next = NULL;
+                                    freeBlock->prev = NULL;
+                                }
 
-                                return (char*)tmpHeader+8;
+                               // sf_blockprint(tmpHeader);
+                                return ((char*)tmpHeader+8);
 
                             }
                             else //don't split block
@@ -255,7 +259,8 @@ void *sf_malloc(size_t size) {
 
                             }
                             //return payload
-                            return (char*)tmpHeader+8;
+                           // sf_blockprint(tmpHeader);
+                            return ((char*)tmpHeader+8) ;
                         }
                         tmpHeader = tmpHeader->next;
                     }//if out of loop, check currPages <4, may need to trap code into another loop
