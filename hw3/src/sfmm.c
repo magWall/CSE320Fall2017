@@ -230,9 +230,9 @@ void *sf_malloc(size_t size) {
                         {
                             tmpHeader->header.allocated = 1;
                             if(paddedSize==0)
-                                condition = (tmpHeader->header.block_size <<4)-(size+16)>32;
+                                condition = (tmpHeader->header.block_size <<4)-(size+16)>=32;
                             else
-                                condition = (tmpHeader->header.block_size <<4)-((16-paddedSize)+size+16)>32;
+                                condition = (tmpHeader->header.block_size <<4)-((16-paddedSize)+size+16)>=32;
                             if( condition )//if new block can be formed , 32 is lowest byte available
                             {
                                 //unsplit block [ ][ this block ] footer
@@ -500,27 +500,94 @@ void *sf_realloc(void *ptr, size_t size) {
         return NULL;
     }
     //assume valid realloc now
-    if(tmpRequestedBits > size)
+    if(tmpRequestedBits > size) //realloc into smaller
     {
-        sf_free(ptr);
+        int paddedSize = size%16;
+        bool condition = 0;
+        if(paddedSize != 0)
+             condition= (tmpPtr->header.block_size<<4) - ((16-paddedSize)+16+size) >=32;
+        else
+            condition = (tmpPtr->header.block_size<<4) - (16+size)>=32;
+
+        sf_free_header* tmpHeader = tmpPtr;
+        if(condition)//if greater, split
+        {
+            //tmpHeader->header.allocated = 1;
+            //unsplit block [ ][ this block ] footer
+            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=0;
+            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.unused=0;
+            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.two_zeroes=0;
+            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.padded=0;
+            if(paddedSize==0)
+                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.block_size=((tmpHeader->header.block_size<<4)-(size+16))>>4;
+            else
+                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.block_size=((tmpHeader->header.block_size<<4)-(size+16+(16-paddedSize)))>>4;
+             //split block
+
+            if(paddedSize!=0)
+            {
+                tmpHeader->header.padded=1;
+                ((sf_free_header*)((char*)tmpHeader+(16-paddedSize)+size+8 ))->header.padded=1;
+            }
+            else
+            {
+                tmpHeader->header.padded=0;
+                ((sf_free_header*)((char*)tmpHeader+(16-paddedSize)+size+8 ))->header.padded=0;
+            }
+            //original  [] [this block] header
+            ((sf_free_header*)((char*)tmpHeader+ (16-paddedSize)+size+16 ))->header.allocated=0;
+            ((sf_free_header*)((char*)tmpHeader+ (16-paddedSize)+size+16 ))->header.unused=0;
+            ((sf_free_header*)((char*)tmpHeader+ (16-paddedSize)+size+16 ))->header.two_zeroes=0;
+            ((sf_free_header*)((char*)tmpHeader+ (16-paddedSize)+size+16 ))->header.padded=0;
+            if(paddedSize==0)
+                ((sf_free_header*)((char*)tmpHeader+size+16 ))->header.block_size=((tmpHeader->header.block_size<<4)-(size+16))>>4;
+            else
+                ((sf_free_header*)((char*)tmpHeader+ (16-paddedSize)+size+16 ))->header.block_size=((tmpHeader->header.block_size<<4)-(size+16+(16-paddedSize)))>>4;
+            if(paddedSize==0)
+                tmpHeader->header.block_size= (size+16)>>4;
+            else
+                tmpHeader->header.block_size= (size+16+(16-paddedSize))>>4;
+            tmpHeader->header.two_zeroes=0;
+            // split [this block] [] footer
+            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.allocated=1;
+            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.unused=size;//requested size
+            ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.two_zeroes=0;
+            if(paddedSize==0)
+                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.block_size=(size+16)>>4;
+            else
+                ((sf_free_header*)((char*)tmpHeader+ (tmpHeader->header.block_size<<4)-8 ))->header.block_size=(size+16+(16-paddedSize))>>4;
+
+            //new point to split block, update
+            sf_free_header* freeBlock;
+            if(paddedSize==0)
+                freeBlock = ((sf_free_header*)((char*)tmpHeader+size+16));
+            else
+                freeBlock = ((sf_free_header*)((char*)tmpHeader+ (16-paddedSize)+size+16));
+
+            int listIdx= findListIdxofNum( (freeBlock->header.block_size<<4) );
+            freeBlock->next = seg_free_list[listIdx].head;
+            freeBlock->prev = NULL;
+            if(seg_free_list[listIdx].head!=NULL)
+            {
+                seg_free_list[listIdx].head->prev = freeBlock;
+            }
+            seg_free_list[listIdx].head = freeBlock;
+            memcpy((char*)(tmpHeader+8), ptr, size);
+            return ((char*)(tmpHeader+8));
+        }
+        else
+        {
+            return ptr;
+        }
+    }
+    else //where allocating to alrger size realloc
+    {
         void* mallocPtr = sf_malloc(size);
         if(mallocPtr==NULL)
         {
-            sf_errno = ENOMEM;
             return NULL;
         }
         memcpy(mallocPtr,ptr,size);
-        return mallocPtr;
-    }
-    else //must be using lower realloc
-    {
-        void* mallocPtr= sf_malloc(size);
-        if(mallocPtr==NULL)
-        {
-            sf_errno = ENOMEM;
-            return NULL;
-        }
-        memcpy(mallocPtr, ptr, size);
         sf_free(ptr);
         return mallocPtr;
          /*
