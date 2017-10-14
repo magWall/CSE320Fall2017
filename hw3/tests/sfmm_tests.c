@@ -262,12 +262,29 @@ Test(sf_memsuite_student, firstTest, .init = sf_mem_init, .fini = sf_mem_fini) {
 
 }
 
-Test(sf_memsuite_student, secondTest, .init = sf_mem_init, .fini = sf_mem_fini) {
+Test(sf_memsuite_student, secondTest, .init = sf_mem_init, .fini = sf_mem_fini, .signal = SIGABRT) {
+	int sf_errno = 0;
+	void* omae_wa = sf_malloc(PAGE_SZ-16);
+	void* mou = sf_malloc(PAGE_SZ-16);
+	void* shindeiru = sf_malloc(PAGE_SZ-16);
+	void* nani = sf_malloc(PAGE_SZ-16);
 
-void* x = sf_malloc(4080);
-	void* y = sf_malloc(1);
+	cr_assert_not_null(omae_wa,"x is NOT NULL");
+	cr_assert_not_null(mou,"y is NOT NULL");//check specific case if you forgot to add page into list properly
+	cr_assert_not_null(shindeiru,"x is NOT NULL");
+	cr_assert_not_null(nani,"y is NOT NULL");//check specific case if you forgot to add page into list properly
 
-	cr_assert_not_null(x,"x is NOT NULL");
-	cr_assert_not_null(y,"y is NOT NULL");
+	void* boom = sf_malloc(999);
+	cr_assert_null(boom, "This should be null because you ran out of space"); //aka ded
+	cr_assert(sf_errno == ENOMEM, "Supposed to ran out of memory"); //BAKANA
+
+	void* test1 =sf_malloc(80);
+	void* dontRealloc = sf_realloc(test1, 75);
+	cr_assert_not_null(dontRealloc, "Should not be null");
+	sf_header* header = (sf_header*)((char*)dontRealloc-8);
+	cr_assert(header->block_size<<4==96,"Should not have changed Blocks");
+
+
+
 
 }
