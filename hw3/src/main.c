@@ -50,6 +50,8 @@ int main(int argc, char const *argv[]) {
 //             }
 //     }
     void *x = sf_malloc(sizeof(double) * 8);
+    sf_varprint(x);
+    sf_blockprint( (char*)x-8);
     void *y = sf_realloc(x, sizeof(int));
 
     if(y == NULL)
