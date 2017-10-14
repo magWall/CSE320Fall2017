@@ -49,39 +49,49 @@ int main(int argc, char const *argv[]) {
 //                 fh=fh->next;
 //             }
 //     }
-    void *x = sf_malloc(sizeof(double) * 8);
+    void* x = sf_malloc(4080);
+    void* y = sf_malloc(1);
+
     sf_varprint(x);
-    sf_blockprint( (char*)x-8);
-    void *y = sf_realloc(x, sizeof(int));
+    sf_varprint(y);
+    sf_free(x);
+    void* z = sf_malloc(6286);
+    sf_header* header = (sf_header*)((char*)z-8);
+    printf("%d",header->block_size << 4);
+    sf_free(y);
+    // void *x = sf_malloc(sizeof(double) * 8);
+    // sf_varprint(x);
+    // sf_blockprint( (char*)x-8);
+    // void *y = sf_realloc(x, sizeof(int));
 
-    if(y == NULL)
-    {
-        printf("Y should not be null!");
-    }
+    // if(y == NULL)
+    // {
+    //     printf("Y should not be null!");
+    // }
 
-    sf_header *header = (sf_header*)((char*)y - 8);
-    if( header->block_size << 4 != 32)
-        printf("Realloc'ed block size not what was expected!");
-    if(header->allocated != 1)
-        printf("Allocated bit is not set!");
+    // sf_header *header = (sf_header*)((char*)y - 8);
+    // if( header->block_size << 4 != 32)
+    //     printf("Realloc'ed block size not what was expected!");
+    // if(header->allocated != 1)
+    //     printf("Allocated bit is not set!");
 
 
-    // After realloc'ing x, we can return a block of size 48 to the freelist.
-    // This block will coalesce with the block of size 4016.
-    int tmpNum;
-    if (4064 >= LIST_1_MIN && 4064 <= LIST_1_MAX) tmpNum=0;
-    else if (4064 >= LIST_2_MIN && 4064 <= LIST_2_MAX) tmpNum=1;
-    else if (4064 >= LIST_3_MIN && 4064 <= LIST_3_MAX) tmpNum=2;
-    else
-        tmpNum=3;
-    free_list *fl = &seg_free_list[tmpNum];
+    // // After realloc'ing x, we can return a block of size 48 to the freelist.
+    // // This block will coalesce with the block of size 4016.
+    // int tmpNum;
+    // if (4064 >= LIST_1_MIN && 4064 <= LIST_1_MAX) tmpNum=0;
+    // else if (4064 >= LIST_2_MIN && 4064 <= LIST_2_MAX) tmpNum=1;
+    // else if (4064 >= LIST_3_MIN && 4064 <= LIST_3_MAX) tmpNum=2;
+    // else
+    //     tmpNum=3;
+    // free_list *fl = &seg_free_list[tmpNum];
 
-    if(fl->head == NULL)
-        printf("No block in expected free list!");
-    if(fl->head->header.allocated == 0)
-    printf("Allocated bit is set!");
-    if(fl->head->header.block_size << 4 != 4064)
-    printf("Free block size not what was expected!");
+    // if(fl->head == NULL)
+    //     printf("No block in expected free list!");
+    // if(fl->head->header.allocated == 0)
+    // printf("Allocated bit is set!");
+    // if(fl->head->header.block_size << 4 != 4064)
+    // printf("Free block size not what was expected!");
 
 
     // double* ptr = sf_malloc(PAGE_SZ<<2);

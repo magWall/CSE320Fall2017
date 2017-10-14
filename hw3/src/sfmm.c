@@ -43,6 +43,24 @@ void add_page() //assuming you can add a page
     ((sf_free_header*)((char*)tmpPtr+PAGE_SZ -8))->header.two_zeroes=0;
     ((sf_free_header*)((char*)tmpPtr+PAGE_SZ -8))->header.block_size= (PAGE_SZ>>4);
     ((sf_free_header*)((char*)tmpPtr+PAGE_SZ -8))->header.unused=0;
+
+    bool isAllListsNull = false;
+    for(int i=0;i<FREE_LIST_COUNT;i++)
+    {
+        if(seg_free_list[i].head != NULL)
+        {
+            isAllListsNull= true;
+            break;
+        }
+    }
+    if(isAllListsNull==false)
+    {
+        tmpPtr->next = NULL;
+        tmpPtr->prev = NULL;
+        seg_free_list[listIdxToAddPg].head = tmpPtr;
+        return;
+    }
+    //if not empty list, it will run this
     sf_free_header* tmpHeader;
     for(int i= 0;i<FREE_LIST_COUNT;i++)
     {
@@ -116,21 +134,22 @@ void *sf_malloc(size_t size) {
     {
         if(currPageNum<4)
         {
-            seg_free_list[3].head = sf_sbrk();
+            int idxAdd = findListIdxofNum(PAGE_SZ);
+            seg_free_list[idxAdd].head = sf_sbrk();
             // then set header and footer for this
 
-            (seg_free_list[3].head)->header.allocated= 0;
-            (seg_free_list[3].head)->header.padded =0;
-            (seg_free_list[3].head)->header.two_zeroes =0;
-            (seg_free_list[3].head)->header.block_size = (PAGE_SZ>>4);
-            (seg_free_list[3].head)->header.unused = 0;
+            (seg_free_list[idxAdd].head)->header.allocated= 0;
+            (seg_free_list[idxAdd].head)->header.padded =0;
+            (seg_free_list[idxAdd].head)->header.two_zeroes =0;
+            (seg_free_list[idxAdd].head)->header.block_size = (PAGE_SZ>>4);
+            (seg_free_list[idxAdd].head)->header.unused = 0;
 
             //footer in sf_header because they have same values
-            ((sf_free_header*)((char*)seg_free_list[3].head + PAGE_SZ - 8))->header.allocated = 0;
-            ((sf_free_header*)((char*)seg_free_list[3].head + PAGE_SZ - 8))->header.padded=0;
-            ((sf_free_header*)((char*)seg_free_list[3].head + PAGE_SZ - 8))->header.two_zeroes=0;
-            ((sf_free_header*)((char*)seg_free_list[3].head + PAGE_SZ - 8))->header.block_size= (PAGE_SZ)>>4;
-            ((sf_free_header*)((char*)seg_free_list[3].head + PAGE_SZ - 8))->header.unused=0; //requested size
+            ((sf_free_header*)((char*)seg_free_list[idxAdd].head + PAGE_SZ - 8))->header.allocated = 0;
+            ((sf_free_header*)((char*)seg_free_list[idxAdd].head + PAGE_SZ - 8))->header.padded=0;
+            ((sf_free_header*)((char*)seg_free_list[idxAdd].head + PAGE_SZ - 8))->header.two_zeroes=0;
+            ((sf_free_header*)((char*)seg_free_list[idxAdd].head + PAGE_SZ - 8))->header.block_size= (PAGE_SZ)>>4;
+            ((sf_free_header*)((char*)seg_free_list[idxAdd].head + PAGE_SZ - 8))->header.unused=0; //requested size
 
             currPageNum++;
             //block_size is measured in hex, the remaining are in bits

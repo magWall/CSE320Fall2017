@@ -185,3 +185,89 @@ Test(sf_memsuite_student, realloc_smaller_block_free_block, .init = sf_mem_init,
 //DO NOT DELETE THESE COMMENTS
 //############################################
 
+int findListIdxofNum2(int num)
+{
+    if(LIST_1_MAX==-1)
+    {
+        if(num>=LIST_2_MIN && num<=LIST_2_MAX)
+            return 1;
+        else if(num>=LIST_3_MIN && num<LIST_3_MAX)
+            return 2;
+        else if(num>=LIST_4_MIN && num<=LIST_4_MAX)
+            return 3;
+        else if(LIST_1_MIN)
+            return 0;
+    }
+    else if(LIST_2_MAX==-1)
+    {
+        if(num>=LIST_1_MIN && num<=LIST_1_MAX)
+            return 0;
+        else if(num>=LIST_3_MIN && num<LIST_3_MAX)
+            return 2;
+        else if(num>=LIST_4_MIN && num<=LIST_4_MAX)
+            return 3;
+        else if(LIST_2_MIN)
+            return 1;
+    }
+    else if(LIST_3_MAX ==-1)
+    {
+        if(num>=LIST_1_MIN && num<=LIST_1_MAX)
+            return 0;
+        else if(num>=LIST_2_MIN && num<=LIST_2_MAX)
+            return 1;
+        else if(num>=LIST_4_MIN && num<=LIST_4_MAX)
+            return 3;
+        else if(num>=LIST_3_MIN)
+            return 2;
+    }
+    else //LIST_4_MAX
+    {
+        if(num>=LIST_1_MIN && num<=LIST_1_MAX)
+            return 0;
+        else if(num>=LIST_2_MIN && num<=LIST_2_MAX)
+            return 1;
+        else if(num>=LIST_3_MIN && num<=LIST_3_MAX)
+            return 2;
+        else if(num>=LIST_4_MIN)
+            return 3;
+    }
+    return -1;
+}
+Test(sf_memsuite_student, firstTest, .init = sf_mem_init, .fini = sf_mem_fini) {
+	//test large size mallocs
+	void* x = sf_malloc(4080);
+	void* y = sf_malloc(1);
+
+	cr_assert_not_null(x,"x is NOT NULL");
+	cr_assert_not_null(y,"y is NOT NULL");//check specific case if you forgot to add page into list properly
+	sf_header *header = (sf_header*)((char*)y-8);
+	cr_assert(header->block_size << 4 == 32, "block size not what was expected!");
+	cr_assert(header->allocated == 1, "Allocated bit is not set!");
+	header = (sf_header*)((char*)x-8);
+	cr_assert(header->block_size << 4 == 4096, "block size not what was expected!");
+	cr_assert(header->allocated == 1, "Allocated bit is not set!");
+
+	sf_free(x);
+	void* z = sf_malloc(6286);
+	header = (sf_header*)((char*)z-8);
+	cr_assert(header->block_size << 4 == 6304, "block size not what was expected!");
+	cr_assert(header->allocated == 1, "Allocated bit is not set!");
+
+	free_list *fl_x = &seg_free_list[findListIdxofNum2(4096)];
+	cr_assert_not_null(fl_x, "Free list is null!");
+	cr_assert_not_null(fl_x->head, "Block expected free list!");
+	cr_assert(fl_x->head->header.block_size<<4 == 4096, "Expected block size of 4096");
+
+
+
+}
+
+Test(sf_memsuite_student, secondTest, .init = sf_mem_init, .fini = sf_mem_fini) {
+
+void* x = sf_malloc(4080);
+	void* y = sf_malloc(1);
+
+	cr_assert_not_null(x,"x is NOT NULL");
+	cr_assert_not_null(y,"y is NOT NULL");
+
+}
