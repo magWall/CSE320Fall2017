@@ -525,16 +525,87 @@ void *sf_realloc(void *ptr, size_t size) {
             else
                 freeBlock = ((sf_free_header*)((char*)tmpHeader+ (16-paddedSize)+size+16));
 
-            int listIdx= findListIdxofNum( (freeBlock->header.block_size<<4) );
-            freeBlock->next = seg_free_list[listIdx].head;
-            freeBlock->prev = NULL;
-            if(seg_free_list[listIdx].head!=NULL)
+            //coalesce code from free
+            ptrBlockSize = freeBlock->header.block_size<<4;
+            if( ((sf_free_header*)((char*)freeBlock+ptrBlockSize))->header.allocated==0)
             {
-                seg_free_list[listIdx].head->prev = freeBlock;
+                sf_free_header* tmpHeader2;
+                for(int i= 0;i<FREE_LIST_COUNT;i++)
+                {
+                    tmpHeader2 = seg_free_list[i].head;
+                    while(tmpHeader2 != NULL)
+                    {
+                        if(tmpHeader2 == ((sf_free_header*)((char*)freeBlock+ptrBlockSize)) )//same position, so next block
+                        {
+                            //of higher address
+                            if(tmpHeader2->header.allocated==0) //if statement probably redundant
+                            {
+                                //editing old footer
+                                ((sf_free_header*)((char*)tmpHeader2+(tmpHeader2->header.block_size<<4)-8))->header.block_size = ((tmpHeader2->header.block_size<<4) +ptrBlockSize)>>4;
+                                //edit new header to temporarily change values
+                                tmpHeader2->header.block_size= (ptrBlockSize+(tmpHeader2->header.block_size<<4))>>4;
+                                //edit old blocksize of original header
+                                ((sf_free_header*)((char*)freeBlock+ptrBlockSize -8))->header.block_size=0;//remove old block_size
+                                freeBlock->header.block_size =tmpHeader2->header.block_size;//update new size
+                                tmpHeader2->header.block_size = 0; //remove temporary old header
+                                //after edit, check to see if size fits, or need to switch lists
+                                int listIdxOfNewSize = findListIdxofNum( (freeBlock->header.block_size<<4) );
+                                    if(tmpHeader2->prev != NULL)
+                                    {
+                                        if(tmpHeader2->next==NULL)
+                                        {
+                                            tmpHeader2->prev->next = NULL;
+                                        }
+                                        else //in middle of list
+                                        {
+                                            tmpHeader2->prev->next = tmpHeader2->next;
+                                            tmpHeader2->next->prev = tmpHeader2->prev;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(tmpHeader2->next == NULL)
+                                        {
+                                            seg_free_list[i].head = NULL;
+                                        }
+                                        else
+                                        {
+                                            tmpHeader2->next->prev = NULL;
+                                            seg_free_list[i].head = tmpHeader2->next;
+                                        }
+                                    }
+                                    freeBlock->next = seg_free_list[listIdxOfNewSize].head;
+                                    freeBlock->prev= NULL;
+
+                                    if(seg_free_list[listIdxOfNewSize].head != NULL)
+                                        seg_free_list[listIdxOfNewSize].head->prev = freeBlock;
+                                    seg_free_list[listIdxOfNewSize].head = freeBlock;
+                                //if no fit, check for new list fit
+                                tmpHeader2->prev = NULL;
+                                tmpHeader2->next = NULL;
+                                return ptr;
+                            }
+                        }
+                        tmpHeader2 =  tmpHeader2->next;
+                    }
+
+                }
+        //change block size if can coalesce, check if still in bounds of proper list, if can't coalesce, add to list
+        //coalesce with one higher mem address, aka footer
+
             }
-            seg_free_list[listIdx].head = freeBlock;
-            //memcpy((char*)(tmpHeader+8), ptr, size);
-            return ptr;
+            else
+            {
+                int listIdx= findListIdxofNum( (freeBlock->header.block_size<<4) );
+                freeBlock->next = seg_free_list[listIdx].head;
+                freeBlock->prev = NULL;
+                if(seg_free_list[listIdx].head!=NULL)
+                {
+                    seg_free_list[listIdx].head->prev = freeBlock;
+                }
+                seg_free_list[listIdx].head = freeBlock;
+                return ptr;
+            }
         }
         else
         {
