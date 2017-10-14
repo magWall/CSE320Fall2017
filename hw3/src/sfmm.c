@@ -499,16 +499,38 @@ void *sf_realloc(void *ptr, size_t size) {
         sf_free(ptr);
         return NULL;
     }
-
-    sf_free(ptr);
-    void* mallocPtr = sf_malloc(size);
-    if(tmpPtr== NULL)
+    //assume valid realloc now
+    if(tmpRequestedBits > size)
     {
-        sf_errno =ENOMEM;
-        return NULL;
+        sf_free(ptr);
+        void* mallocPtr = sf_malloc(size);
+        if(mallocPtr==NULL)
+        {
+            sf_errno = ENOMEM;
+            return NULL;
+        }
+        memcpy(mallocPtr,ptr,size);
+        return mallocPtr;
     }
-    memcpy(mallocPtr,ptr,size);
-    return mallocPtr;
+    else //must be using lower realloc
+    {
+        void* mallocPtr= sf_malloc(size);
+        if(mallocPtr==NULL)
+        {
+            sf_errno = ENOMEM;
+            return NULL;
+        }
+        memcpy(mallocPtr, ptr, size);
+        sf_free(ptr);
+        return mallocPtr;
+         /*
+
+        sf_free(ptr);
+        void* mallocPtr = sf_malloc(size);
+        memcpy(mallocPtr,ptr,size);
+        return mallocPtr;
+        */
+    }
 
     // check if no memory, then == ENOMEM
 
