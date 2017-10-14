@@ -6,8 +6,16 @@ int main(int argc, char const *argv[]) {
     sf_mem_init();
 
     sf_snapshot();
-    double* ptr = sf_malloc(PAGE_SZ<<2);
-    *ptr = 320320320e-320;
+    /* void *x = */ sf_malloc(sizeof(long));
+
+    void *y = sf_malloc(sizeof(double) * 10);
+    /* void *z = */ sf_malloc(sizeof(char));
+
+    sf_free(y);
+
+
+    // double* ptr = sf_malloc(PAGE_SZ<<2);
+    // *ptr = 320320320e-320;
 //     sf_snapshot();
 // //    sf_blockprint(ptr-1);
 //      double* ptr2 = sf_malloc(sizeof(double));

@@ -294,7 +294,7 @@ void *sf_malloc(size_t size) {
                                     freeBlock->next = NULL;
                                     freeBlock->prev = NULL;
                                 }
-
+                                sf_blockprint(freeBlock);
                                // sf_blockprint(tmpHeader);
                                 return ((char*)tmpHeader+8);
 
@@ -314,35 +314,38 @@ void *sf_malloc(size_t size) {
                                     tmpHeader->header.padded=0;
                                     ((sf_free_header*)((char*)tmpHeader+(tmpHeader->header.block_size<<4)-8 ))->header.padded=0;
                                 }
-                            }
-                            //update
-                            if(tmpHeader->prev != NULL) //remove from old list
-                            {
-                                tmpHeader->prev->next = tmpHeader->next;
-                                if(tmpHeader->next!=NULL)
-                                {
-                                    tmpHeader->next->prev = tmpHeader->prev;
-                                    tmpHeader->next = NULL;  //remove connections
-                                }
-                                tmpHeader->prev = NULL;//remove connections
 
-                            }
-                            else //is null, so nothing behind, first on list
-                            {
-                                if(tmpHeader->next!=NULL)
+                                //update
+                                if(tmpHeader->prev != NULL) //remove from old list
                                 {
-                                    tmpHeader->next->prev = tmpHeader->prev;//or NULL
-                                    //set as new head
-                                    seg_free_list[i].head = tmpHeader->next;
-                                    tmpHeader->next = NULL;
-                                }
-                                else
-                                    seg_free_list[i].head = NULL;
+                                    tmpHeader->prev->next = tmpHeader->next;
+                                    if(tmpHeader->next!=NULL)
+                                    {
+                                        tmpHeader->next->prev = tmpHeader->prev;
+                                        tmpHeader->next = NULL;  //remove connections
+                                    }
+                                    tmpHeader->prev = NULL;//remove connections
 
+                                }
+                                else //is null, so nothing behind, first on list
+                                {
+                                    if(tmpHeader->next!=NULL)
+                                    {
+                                        tmpHeader->next->prev = tmpHeader->prev;//or NULL
+                                        //set as new head
+                                        seg_free_list[i].head = tmpHeader->next;
+                                        tmpHeader->next = NULL;
+                                    }
+                                    else
+                                        seg_free_list[i].head = NULL;
+
+                                }
+                                tmpHeader->prev = NULL;
+                                tmpHeader->next = NULL;
+                                //return payload
+                               // sf_blockprint(tmpHeader);
+                                return ((char*)tmpHeader+8) ;
                             }
-                            //return payload
-                           // sf_blockprint(tmpHeader);
-                            return ((char*)tmpHeader+8) ;
                         }
                         tmpHeader = tmpHeader->next;
                     }//if out of loop, check currPages <4, may need to trap code into another loop
@@ -434,11 +437,49 @@ void *sf_realloc(void *ptr, size_t size) {
         sf_errno = EINVAL;
         return NULL;
     }
+    if(  ((void*)((char*)ptr -8)) < get_heap_start() )
+        abort();
+    sf_free_header* tmpPtr = ((sf_free_header*)((char*)ptr -8));
+    int ptrBlockSize = tmpPtr->header.block_size<<4;
+    if( ((void*)((char*)tmpPtr+ptrBlockSize)) > get_heap_end())
+        abort();
+    int tmpRequestedBits = ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.unused;
+    int padded = tmpPtr->header.padded;
+    if(padded != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.padded)
+        abort();
+    if(ptrBlockSize != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.block_size<<4)
+        abort();
+    int allocatedBit = tmpPtr->header.allocated;
+    if(allocatedBit == 0 || ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.allocated ==0
+         || allocatedBit != ((sf_free_header*)((char*)tmpPtr+ptrBlockSize-8))->header.allocated)
+    {
+        abort();
+    }
+    if(padded!=0)
+    {
+        if(tmpRequestedBits+16 == ptrBlockSize)
+            abort(); //there should be padding here since pad flag raised
+    }
+    else if(padded==0)
+    {
+        if(tmpRequestedBits+16!= ptrBlockSize)
+            abort(); //padding should exist here
+    }
     if(size==0) //assume valid ptr
     {
         sf_free(ptr);
         return NULL;
     }
+
+    sf_free(ptr);
+    void* mallocPtr = sf_malloc(size);
+    if(tmpPtr== NULL)
+    {
+        sf_errno =ENOMEM;
+        return NULL;
+    }
+    memcpy(mallocPtr,ptr,size);
+    return mallocPtr;
 
     // check if no memory, then == ENOMEM
 
