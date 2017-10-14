@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "hw3functs.h"
+#include <string.h>
 
 /**
  * You should store the heads of your free lists in these variables.
