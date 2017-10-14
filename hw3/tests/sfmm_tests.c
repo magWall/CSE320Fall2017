@@ -235,6 +235,7 @@ int findListIdxofNum2(int num)
 }
 Test(sf_memsuite_student, firstTest, .init = sf_mem_init, .fini = sf_mem_fini) {
 	//test large size mallocs
+	//sf_errno= 0;
 	void* x = sf_malloc(4080);
 	void* y = sf_malloc(1);
 
@@ -250,6 +251,7 @@ Test(sf_memsuite_student, firstTest, .init = sf_mem_init, .fini = sf_mem_fini) {
 	sf_free(x);
 	void* z = sf_malloc(6286);
 	header = (sf_header*)((char*)z-8);
+	cr_assert_not_null(z,"z is NOT NULL");
 	cr_assert(header->block_size << 4 == 6304, "block size not what was expected!");
 	cr_assert(header->allocated == 1, "Allocated bit is not set!");
 
@@ -258,12 +260,9 @@ Test(sf_memsuite_student, firstTest, .init = sf_mem_init, .fini = sf_mem_fini) {
 	cr_assert_not_null(fl_x->head, "Block expected free list!");
 	cr_assert(fl_x->head->header.block_size<<4 == 4096, "Expected block size of 4096");
 
-
-
 }
-
-Test(sf_memsuite_student, secondTest, .init = sf_mem_init, .fini = sf_mem_fini, .signal = SIGABRT) {
-	int sf_errno = 0;
+Test(sf_memsuite_student, secondTest, .init = sf_mem_init, .fini = sf_mem_fini) {
+	sf_errno = 0;
 	void* omae_wa = sf_malloc(PAGE_SZ-16);
 	void* mou = sf_malloc(PAGE_SZ-16);
 	void* shindeiru = sf_malloc(PAGE_SZ-16);
@@ -276,15 +275,84 @@ Test(sf_memsuite_student, secondTest, .init = sf_mem_init, .fini = sf_mem_fini, 
 
 	void* boom = sf_malloc(999);
 	cr_assert_null(boom, "This should be null because you ran out of space"); //aka ded
-	cr_assert(sf_errno == ENOMEM, "Supposed to ran out of memory"); //BAKANA
+	cr_assert(sf_errno == ENOMEM, "Supposed to ran out of memory");
 
+	sf_free(nani);
+	sf_free(shindeiru);
+	sf_free(mou);
+	sf_free(omae_wa);
+	free_list* bakana =&seg_free_list[findListIdxofNum2(PAGE_SZ*4)];
+	cr_assert_not_null(bakana, "Free list exists!");
+	cr_assert_not_null(bakana->head,"Block expected in freelist");
+	cr_assert_null(bakana->head->next, "Too many extra blocks!");
+	cr_assert(bakana->head->header.block_size<<4 == PAGE_SZ*4, "Coalesce failed");
+
+}
+Test(sf_memsuite_student, thirdTest, .init = sf_mem_init, .fini = sf_mem_fini, .signal = SIGABRT){
+	//free invalid ptr, or NULLptr
+	sf_errno = 0;
+	void *ptr= NULL;
+	sf_free(ptr);
+}
+Test(sf_memsuite_student, fourthTest, .init = sf_mem_init, .fini = sf_mem_fini, .signal=SIGABRT){
+	//don't realloc
 	void* test1 =sf_malloc(80);
 	void* dontRealloc = sf_realloc(test1, 75);
 	cr_assert_not_null(dontRealloc, "Should not be null");
 	sf_header* header = (sf_header*)((char*)dontRealloc-8);
 	cr_assert(header->block_size<<4==96,"Should not have changed Blocks");
+	cr_assert(header->allocated==1,"Block is allocated!");
 
+	//corrupt header and run into sig error
+	sf_errno=0;
+	header->allocated=0;
+	sf_free(header);
+}
+Test(sf_memsuite_student, fifthTest, .init = sf_mem_init, .fini = sf_mem_fini){
+	//properRealloc
+	void* kfcBucket = sf_malloc(100);
+	int* mcNuggets = sf_realloc(kfcBucket, sizeof(double));
+	*mcNuggets = 5;
+	cr_assert_not_null(mcNuggets);
+	cr_assert(*mcNuggets ==5, "Invalid value of realloc");
+	int* mcNugget = sf_realloc(mcNuggets, sizeof(int));
+	*mcNugget = 10;
+	cr_assert(*mcNugget ==10, "Invalid value of realloc");
+	cr_assert_not_null(mcNugget);
+	kfcBucket = sf_realloc(mcNugget,100);
+	cr_assert_not_null(kfcBucket);
+	cr_assert(*((int*)kfcBucket)==10,"Invalid realloc value!" );
+}
+Test(sf_memsuite_student, sixthTestSizeZeroMalloc, .init = sf_mem_init, .fini = sf_mem_fini){
 
+	sf_errno = 0;
+	void* tmpPtr = sf_malloc(0);
+	cr_assert_null(tmpPtr, "Should be null");
+	cr_assert(sf_errno==EINVAL, "errno is not EINVAL");
+}
+Test(sf_memsuite_student, corruptedBlocksize, .init = sf_mem_init, .fini = sf_mem_fini, .signal = SIGABRT){
+
+	void* tmpPtr = sf_malloc(265);
+	cr_assert_not_null(tmpPtr,"tmpPtr is not null");
+
+	sf_header* header = (sf_header*)((char*)tmpPtr-8);
+	cr_assert(header->allocated==1, "It isn't allocated when called malloc");
+	cr_assert( ((sf_header*)((char*)header+(header->block_size<<4)-8))->unused==265, "invalid requested size");
+
+	//break header so fail free
+	header->block_size = 165;
+	sf_free(header);
+}
+Test(sf_memsuite_student, reallocFree, .init = sf_mem_init, .fini = sf_mem_fini){
+
+	void* tmpPtr = sf_malloc(265);
+	void* aPtr = sf_realloc(tmpPtr,0);
+	cr_assert_null(aPtr, "should be freed and return null");
+	free_list* fl_x = &seg_free_list[findListIdxofNum2(PAGE_SZ)];
+	cr_assert_not_null(fl_x, "list should not be null");
+	cr_assert_not_null(fl_x->head, "block should not be missing");
+	cr_assert(fl_x->head->header.block_size<<4==4096, "Invalid block size");
 
 
 }
+

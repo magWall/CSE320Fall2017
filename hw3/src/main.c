@@ -49,16 +49,20 @@ int main(int argc, char const *argv[]) {
 //                 fh=fh->next;
 //             }
 //     }
-    void* x = sf_malloc(4080);
-    void* y = sf_malloc(1);
 
-    sf_varprint(x);
-    sf_varprint(y);
-    sf_free(x);
-    void* z = sf_malloc(6286);
-    sf_header* header = (sf_header*)((char*)z-8);
-    printf("%d",header->block_size << 4);
-    sf_free(y);
+    // void* x = sf_malloc(4080);
+    // void* y = sf_malloc(1);
+
+    // sf_varprint(x);
+    // sf_varprint(y);
+    // sf_free(x);
+    // void* z = sf_malloc(6286);
+    // sf_header* header = (sf_header*)((char*)z-8);
+    // printf("%d",header->block_size << 4);
+    // sf_free(y);
+
+
+
     // void *x = sf_malloc(sizeof(double) * 8);
     // sf_varprint(x);
     // sf_blockprint( (char*)x-8);
@@ -94,8 +98,8 @@ int main(int argc, char const *argv[]) {
     // printf("Free block size not what was expected!");
 
 
-    // double* ptr = sf_malloc(PAGE_SZ<<2);
-    // *ptr = 320320320e-320;
+     double* ptr = sf_malloc(PAGE_SZ<<2);
+     *ptr = 320320320e-320;
 //     sf_snapshot();
 // //    sf_blockprint(ptr-1);
 //      double* ptr2 = sf_malloc(sizeof(double));
@@ -113,9 +117,9 @@ int main(int argc, char const *argv[]) {
 //     // sf_varprint(ptrA);
 //     sf_snapshot();
 
-//     printf("%f\n", *ptr);
+     printf("%f\n", *ptr);
 
-//     sf_free(ptr);
+    sf_free(ptr);
 //     sf_free(ptr2);
 //     sf_free(ptr3);
 //     sf_free(ptr4);
