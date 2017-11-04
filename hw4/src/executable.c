@@ -19,42 +19,42 @@ void executeRelative(char* args)
 }
 
 
-void executableProgram(char* args)
-{
-    //get count of all words in args
-    //then set them into executable
+// void executableProgram(char* args)
+// {
+//     //get count of all words in args
+//     //then set them into executable
 
-    pid_t pid;
-    int status;
-    if( (pid = Fork()) ==0 )
-    {
-        int numargs = 0;
-        char** words = splitStr(args," ");
-        while( *(words+numargs)!= '\0' ) //not null limimt
-        {
-            numargs++;
-        }
-        char* allArgs[numargs+1]; //include null character to run execve
-        allArgs[0] = *words;
+//     pid_t pid;
+//     int status;
+//     if( (pid = Fork()) ==0 )
+//     {
+//         int numargs = 0;
+//         char** words = splitStr(args," ");
+//         while( *(words+numargs)!= '\0' ) //not null limimt
+//         {
+//             numargs++;
+//         }
+//         char* allArgs[numargs+1]; //include null character to run execve
+//         allArgs[0] = *words;
 
-        int idx =1;
-        while( *(words+idx)!=0) //for args -i -r -etc
-        {
-            allArgs[idx]=*(words+idx);
-            idx++;
-        }
-        allArgs[numargs+1]=NULL;
-        char* allPaths = getenv("PATH");
-        char** allDir = splitStr(allPaths,":");
-        execve(allArgs[0],allArgs,allDir);//path, arg
-        free(words);
-    }
-    pid = wait(&status);
+//         int idx =1;
+//         while( *(words+idx)!=0) //for args -i -r -etc
+//         {
+//             allArgs[idx]=*(words+idx);
+//             idx++;
+//         }
+//         allArgs[numargs+1]=NULL;
+//         char* allPaths = getenv("PATH");
+//         char** allDir = splitStr(allPaths,":");
+//         execve(allArgs[0],allArgs,allDir);//path, arg
+//         free(words);
+//     }
+//     pid = wait(&status);
 
-}
+// }
 
 
-char** splitStr(char* stringToSplit, char* delim)
+char** splitStr(char* stringToSplit, char* delim) //helper funct. to split string
 {
     char** spaceOfWords = malloc(512);
     if(spaceOfWords==NULL)
