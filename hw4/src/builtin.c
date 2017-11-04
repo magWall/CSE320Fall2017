@@ -2,7 +2,8 @@
 #include "debug.h"
 #include <sys/wait.h>
 #include <sys/stat.h>
-//#include <unistd.h>
+#include <unistd.h>
+#include <dirent.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,12 +77,120 @@ void cd(char* arg)
     }
     else if( strncmp(arg,"..",2)==0)
     {
+
+        char* currPath = getenv("PWD"); //get current PWD to modify and set to old PWD
+        char newPath[256] = {0};
+        char* newPathPtr = newPath;
+
+        char* tmpPath = malloc(256);
+        strcpy(tmpPath,currPath); //used for tokenization to get len of last directory
+        char* tokens = strtok(tmpPath, "/");
+        int lenLastDir;
+        while(tokens != NULL)
+        {
+            lenLastDir = strlen(tokens);
+            tokens = strtok(NULL, "/");
+        } //to get how many  ../ whatever/whatever2/lastDir      need to remove length of lastDir +1 because of '/' to get ../whatever/whatever2
+        strncpy(newPathPtr, currPath, (strlen(currPath)-(lenLastDir+1) ) );
+        //fprintf(stdout,"%s\n",newPathPtr);
+        free(tmpPath);
         //check to see if it's ../-somepath- or just ..
+        if(strlen(arg)>2) //go back and access another directory
+        {
+            int currPathLen = (strlen(currPath)-(lenLastDir+1)); //from removing prev. directory
+            int idx=2;
+            while(*(arg+idx)!='\0')
+            {
+                *(newPathPtr+currPathLen+idx-2)= *(arg+idx);
+                idx++;
+            }
+            *(newPathPtr+currPathLen+idx-2)='\0'; //set null char
+            if(chdir(newPathPtr)!= -1)
+            {
+                setenv("PWD",newPathPtr,1); //overwrites prev. working directory into current.
+                setenv("OLDPWD",currPath,1);
+            }
+            else
+            {
+                fprintf(stderr,BUILTIN_ERROR,"Cannot go back to a non-existent directory");
+            }
+        }
+        else //just go back to prev. dir.
+        {
+            if(chdir(newPathPtr)!= -1)
+            {
+                setenv("PWD",newPathPtr,1); //overwrites prev. working directory into current.
+                setenv("OLDPWD",currPath,1);
+            }
+            else
+            {
+                fprintf(stderr,BUILTIN_ERROR,"Cannot go back to a non-existent directory");
+            }
+
+        }
     }
     else if( strncmp(arg, ".",1)==0)
     {
         //check to see if it's ./ or just . because . does nothing
+        char* currPath = getenv("PWD"); //get current PWD to modify and set to old PWD
+        char newPath[256] = {0};
+        char* newPathPtr = newPath; //create new pathlength
+        strcpy(newPathPtr,currPath);
+
+
+        int lenPwd= strlen(currPath); //increment idx to not ruin current path directory when creating new path directory
+        int idx =1; //idx to replace str
+        while( *(arg+idx) !='\0') //   str= ./abcd/anotherDir  .
+        {
+            *(newPathPtr+lenPwd+idx-1) = *(arg+idx);
+            idx++;
+        }
+        *(newPathPtr+idx+lenPwd-1)='\0'; //set null char
+        DIR* tmpDir = opendir(currPath);
+        if(tmpDir != NULL)
+        {
+            closedir(tmpDir);
+            if (chdir(newPathPtr) != -1)
+            {
+                setenv("OLDPWD", currPath,1);
+                setenv("PWD", newPathPtr, 1);
+            }
+            else
+            {
+                fprintf(stderr, BUILTIN_ERROR, "Cannot open path Directory specified");
+
+            }
+        }
+        else
+        {
+            fprintf(stderr, BUILTIN_ERROR, "Cannot open current Directory"); //this is probably redundant
+        }
+
+
+    }
+    else //regular cd
+    {
+        char* currPath = getenv("PWD"); //for setting to old PWD
+        char newPath[256] = {0};
+        char* newPathPtr = newPath;
+        strcpy(newPathPtr,currPath);
+        strcat(newPathPtr,"/");
+        strcat(newPathPtr,arg); //add currPath and then the extra path
+        //test
+        DIR* tmpDir = opendir(newPathPtr);
+        if(tmpDir != NULL)
+        {
+            closedir(tmpDir);
+            chdir(newPathPtr);
+            setenv("OLDPWD", currPath,1);
+            setenv("PWD", newPathPtr, 1);
+        }
+        else
+        {
+            fprintf(stderr, BUILTIN_ERROR, "Cannot open path Directory specified");
+        }
     }
 
 
 }
+
