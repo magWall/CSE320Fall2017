@@ -57,7 +57,7 @@ void printPwd()
 }
 void cd(char* arg)
 {
-    if(arg == NULL)
+    if(arg == NULL || strcmp(arg,"/")==0)
     {
         char* envPWD = getenv("PWD");
         setenv("OLDPWD",envPWD,1);
