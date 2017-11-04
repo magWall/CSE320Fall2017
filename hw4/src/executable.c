@@ -8,14 +8,21 @@ void executeRelative(char* args)
     //it sounds like execvp can be used for executableProgram too?
     //first arg == command
     //remaining args == argv
+    pid_t pid;
+    int status;
+    if( (pid = Fork()) == 0 )
+    {
+        char** words = splitStr(args," ");
+        char* cmd = *(words);
 
-    char** words = splitStr(args," ");
-    char* cmd = *(words);
+        // execvp(const char *file, char *const argv[]) where file == string
+        execvp(cmd, words);
+        free(words);
 
-    // execvp(const char *file, char *const argv[]) where file == string
-    execvp(cmd, words);
-    free(words);
+    }
+    wait(&status);
     //wait this is so stupid, I wrote a bazillon lines of code and this new program literally runs everything I need in a few lines
+    // man pages for the win?
 }
 
 
