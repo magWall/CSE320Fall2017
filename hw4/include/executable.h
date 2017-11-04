@@ -10,9 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-void executableProgram();
+void executableProgram(); //for programs
 char** splitStr(char* stringToSplit, char* delim); //returns a malloc'd string! REMEMBER TO FREE!!!
-
+void executeRelative(char* args); //for relative paths cat/grep/ls
 
 
 #endif

@@ -1,6 +1,24 @@
 #include "executable.h"
 #include "builtin.h"
 
+
+
+void executeRelative(char* args)
+{
+    //it sounds like execvp can be used for executableProgram too?
+    //first arg == command
+    //remaining args == argv
+
+    char** words = splitStr(args," ");
+    char* cmd = *(words);
+
+    // execvp(const char *file, char *const argv[]) where file == string
+    execvp(cmd, words);
+    free(words);
+    //wait this is so stupid, I wrote a bazillon lines of code and this new program literally runs everything I need in a few lines
+}
+
+
 void executableProgram(char* args)
 {
     //get count of all words in args

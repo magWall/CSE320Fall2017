@@ -89,7 +89,8 @@ int main(int argc, char *argv[], char* envp[]) {
         }
         else
         {
-            executableProgram(input);
+            executeRelative(input);
+            //executableProgram(input);
         }
         free(tmpInputForBuiltin);
         //cmd is for exec if not built in
