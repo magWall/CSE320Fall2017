@@ -27,12 +27,15 @@ void printHelp()
     {//221
         write(STDOUT_FILENO,"The Shell\n"                                      \
             "These commands are built-in. Type 'help' to see this list. \n"    \
-            "cd [-L|[-P [-e]] [-@]] [dir]      ->change directory\n"           \
+            "cd [-] [.] [..] [dir]      ->change directory\n"                  \
+            "    - to go back to last directory\n"                             \
+            "    . in current directory\n"                                     \
+            "   .. to go back one directory\n"                                 \
             "help        ->Displays this usage menu.\n"                        \
             "pwd         ->Print working directory\n"                          \
             "exit        ->Exits the Shell\n"                                  \
-            ,231);
-        exit(0); //10 + 60 + 53+40+38+30 = 231
+            ,317);
+        exit(0); //10 + 60 + 46+35+27+31 +40+38+30 = 317
     }
     wait(&status);
 }
@@ -65,7 +68,7 @@ void cd(char* arg)
     else if( strcmp(arg,"-")==0)
     {
         char* oldpwdPath = getenv("OLDPWD"); //prev pwdPath
-        if( strcmp(oldpwdPath,"")!=0 ) // check to see if there is an prev path, if not, then it's blank
+        if( oldpwdPath!=NULL ) // check to see if there is an prev path, if not, then it's blank
         {
             char* pwdPath = getenv("PWD");
             chdir(oldpwdPath);
@@ -73,7 +76,10 @@ void cd(char* arg)
             setenv("OLDPWD",pwdPath,1);
         }
         else
+        {
             fprintf(stderr,"OLDPWD not set.");
+            return;
+        }
     }
     else if( strncmp(arg,"..",2)==0)
     {

@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <readline/readline.h>
-
+#include "executable.h"
 #include "sfish.h"
 #include "debug.h"
 #include "builtin.h"
@@ -57,21 +57,25 @@ int main(int argc, char *argv[], char* envp[]) {
         write(1, "\e[u", strlen("\e[u"));
 
         // If EOF is read (aka ^D) readline returns NULL
-        if(input == NULL) {
+        if(input == NULL ||strlen(input)==0) {
             continue;
         }
 
 
         // Currently nothing is implemented
 //        printf(EXEC_NOT_FOUND, input);
+        char* tmpInputForBuiltin = malloc(512);
+        strcpy(tmpInputForBuiltin, input);
         char* delimiter = " ";
-        char* words = strtok(input, delimiter);
+        char* words = strtok(tmpInputForBuiltin, delimiter);
 
         // You should change exit to a "builtin" for your hw.
         //exited = strcmp(input, "exit") == 0;
 
         if( strcmp(words, "exit")==0 )
         {
+            free(input);
+            free(tmpInputForBuiltin);
             break;
         }
         else if(strcmp(words, "help")==0)
@@ -83,6 +87,13 @@ int main(int argc, char *argv[], char* envp[]) {
             words = strtok(NULL, delimiter);
             cd(words);
         }
+        else
+        {
+            executableProgram(input);
+        }
+        free(tmpInputForBuiltin);
+        //cmd is for exec if not built in
+
 
         // Readline mallocs the space for input. You must free it.
         rl_free(input);
