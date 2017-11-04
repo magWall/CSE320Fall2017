@@ -8,53 +8,60 @@ void executeRelative(char* args)
     //it sounds like execvp can be used for executableProgram too?
     //first arg == command
     //remaining args == argv
-
-    char** words = splitStr(args," ");
-    char* cmd = *(words);
-
-    // execvp(const char *file, char *const argv[]) where file == string
-    execvp(cmd, words);
-    free(words);
-    //wait this is so stupid, I wrote a bazillon lines of code and this new program literally runs everything I need in a few lines
-}
-
-
-void executableProgram(char* args)
-{
-    //get count of all words in args
-    //then set them into executable
-
     pid_t pid;
     int status;
-    if( (pid = Fork()) ==0 )
+    if( (pid = Fork()) == 0 )
     {
-        int numargs = 0;
         char** words = splitStr(args," ");
-        while( *(words+numargs)!= '\0' ) //not null limimt
-        {
-            numargs++;
-        }
-        char* allArgs[numargs+1]; //include null character to run execve
-        allArgs[0] = *words;
+        char* cmd = *(words);
 
-        int idx =1;
-        while( *(words+idx)!=0) //for args -i -r -etc
-        {
-            allArgs[idx]=*(words+idx);
-            idx++;
-        }
-        allArgs[numargs+1]=NULL;
-        char* allPaths = getenv("PATH");
-        char** allDir = splitStr(allPaths,":");
-        execve(allArgs[0],allArgs,allDir);//path, arg
+        // execvp(const char *file, char *const argv[]) where file == string
+        execvp(cmd, words);
         free(words);
-    }
-    pid = wait(&status);
 
+    }
+    wait(&status);
+    //wait this is so stupid, I wrote a bazillon lines of code and this new program literally runs everything I need in a few lines
+    // man pages for the win?
 }
 
 
-char** splitStr(char* stringToSplit, char* delim)
+// void executableProgram(char* args)
+// {
+//     //get count of all words in args
+//     //then set them into executable
+
+//     pid_t pid;
+//     int status;
+//     if( (pid = Fork()) ==0 )
+//     {
+//         int numargs = 0;
+//         char** words = splitStr(args," ");
+//         while( *(words+numargs)!= '\0' ) //not null limimt
+//         {
+//             numargs++;
+//         }
+//         char* allArgs[numargs+1]; //include null character to run execve
+//         allArgs[0] = *words;
+
+//         int idx =1;
+//         while( *(words+idx)!=0) //for args -i -r -etc
+//         {
+//             allArgs[idx]=*(words+idx);
+//             idx++;
+//         }
+//         allArgs[numargs+1]=NULL;
+//         char* allPaths = getenv("PATH");
+//         char** allDir = splitStr(allPaths,":");
+//         execve(allArgs[0],allArgs,allDir);//path, arg
+//         free(words);
+//     }
+//     pid = wait(&status);
+
+// }
+
+
+char** splitStr(char* stringToSplit, char* delim) //helper funct. to split string
 {
     char** spaceOfWords = malloc(512);
     if(spaceOfWords==NULL)
