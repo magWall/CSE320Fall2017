@@ -7,4 +7,5 @@
 pid_t Fork();
 void printHelp();
 void printPwd();
+void cd(char* arg);
 #endif

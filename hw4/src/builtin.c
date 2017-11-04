@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 pid_t Fork()
 {
@@ -50,4 +51,37 @@ void printPwd()
     wait(&status);
 
 }
+void cd(char* arg)
+{
+    if(arg == NULL)
+    {
+        char* envPWD = getenv("PWD");
+        setenv("OLDPWD",envPWD,1);
+        char* envirHome = getenv("HOME"); //path to home
+        chdir(envirHome);//change directory to home
+        setenv("PWD",envirHome,1); //1 to overwrite old path
+    }
+    else if( strcmp(arg,"-")==0)
+    {
+        char* oldpwdPath = getenv("OLDPWD"); //prev pwdPath
+        if( strcmp(oldpwdPath,"")!=0 ) // check to see if there is an prev path, if not, then it's blank
+        {
+            char* pwdPath = getenv("PWD");
+            chdir(oldpwdPath);
+            setenv("PWD",oldpwdPath,1); //overwrites prev. working directory into current.
+            setenv("OLDPWD",pwdPath,1);
+        }
+        else
+            fprintf(stderr,"OLDPWD not set.");
+    }
+    else if( strncmp(arg,"..",2)==0)
+    {
+        //check to see if it's ../-somepath- or just ..
+    }
+    else if( strncmp(arg, ".",1)==0)
+    {
+        //check to see if it's ./ or just . because . does nothing
+    }
 
+
+}

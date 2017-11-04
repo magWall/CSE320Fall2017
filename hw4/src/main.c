@@ -12,7 +12,7 @@
 int main(int argc, char *argv[], char* envp[]) {
     char* input;
     bool exited = false;
-    char newpathName[256];
+    char newpathName[256] = {0};
     char* workingDirectoryPath = getcwd(NULL,0); //...  home/student/kennylee/hw4
 
     //printf("%s\n", workingDirectoryPath);
@@ -78,10 +78,36 @@ int main(int argc, char *argv[], char* envp[]) {
             printHelp();
         else if(strcmp(words, "pwd")==0)
             printPwd();
-
+        else if (strcmp(words, "cd")==0)
+        {
+            words = strtok(NULL, delimiter);
+            cd(words);
+        }
 
         // Readline mallocs the space for input. You must free it.
         rl_free(input);
+        memset(newpathName, 0, 256); //clear buffer
+        char* workingDirectoryPath = getcwd(NULL,0); //...  home/student/kennylee/hw4
+        if(strncmp(workingDirectoryPath, "/home/student",13) ==0)
+        {
+            char* tokens = strtok(workingDirectoryPath,"/");
+            tokens = strtok(NULL, "/");
+            tokens = strtok(NULL, "/"); //remove home/student
+            strcat(newpathName,"~"); //replace with ~
+            while(tokens != NULL)
+            {
+                strcat(newpathName, "/");
+                strcat(newpathName, tokens);
+                tokens = strtok(NULL, "/");
+            }
+
+        }
+        else
+        {
+            strcat(newpathName,workingDirectoryPath);
+        }
+        free(workingDirectoryPath);
+        strcat(newpathName,"::kennylee >> ");
 
     } while(!exited);
 
