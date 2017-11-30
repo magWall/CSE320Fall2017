@@ -37,7 +37,30 @@ queue_t *create_queue(void) {
 
 bool invalidate_queue(queue_t *self, item_destructor_f destroy_function) {
     //before invalidating, lock and then check
+    if(self == NULL)
+    {
+        errno = EINVAL;
+        return false;
+    }
     pthread_mutex_lock(&self->lock);
+    if(self->invalid == true)
+    {
+        errno =EINVAL;
+        return false;
+    }
+
+    queue_node_t* nodeToLoop = self->front;
+    while(nodeToLoop != self->rear)
+    {
+        destroy_function(nodeToLoop->item);
+        queue_node_t* tmp = nodeToLoop;
+        nodeToLoop = nodeToLoop->next;
+        free(tmp);
+    }
+    destroy_function(nodeToLoop->item);
+    free(nodeToLoop); //last item where front == rear
+    pthread_mutex_unlock(&self->lock);
+
     return false;
 }
 
@@ -104,8 +127,9 @@ void *dequeue(queue_t *self) {
     P(&self->items); //this checks count
     //if(self->front != NULL)
     //{
+    //last element where front and rear == same pointer
         node = self->front;
-        if(self->front != self->rear)   //last element where front and rear == same pointer
+        if(self->front != self->rear)   //if not same, continue
             self->front= self->front->next;
         else
         {
