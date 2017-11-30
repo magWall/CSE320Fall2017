@@ -37,20 +37,24 @@ queue_t *create_queue(void) {
 
 bool invalidate_queue(queue_t *self, item_destructor_f destroy_function) {
     //before invalidating, lock and then check
-
+    pthread_mutex_lock(&self->lock);
     return false;
 }
 
 bool enqueue(queue_t *self, void *item) {
 
-
-    pthread_mutex_lock(&self->lock);
-    if(self == NULL || item == NULL || self->invalid == true)
+    if(self == NULL || item == NULL)
     {
         errno = EINVAL;
         return false;
     }
     //lock
+    pthread_mutex_lock(&self->lock);
+    if(self->invalid == true)
+    {
+        errno = EINVAL;
+        return false;
+    }
 
     if (self->front == NULL) //aka front and rear are empty
     {
@@ -85,16 +89,22 @@ bool enqueue(queue_t *self, void *item) {
 
 void *dequeue(queue_t *self) {
     void* item;
-    pthread_mutex_lock(&self->lock);
-    if(self == NULL || self->invalid == true)
+    queue_node_t* node;
+    if(self == NULL)
     {
         errno = EINVAL;
         return NULL;
     }
+    pthread_mutex_lock(&self->lock);
+    if(self->invalid == true)
+    {
+        errno = EINVAL;
+        return false;
+    }
     P(&self->items); //this checks count
     //if(self->front != NULL)
     //{
-        item = self->front;
+        node = self->front;
         if(self->front != self->rear)   //last element where front and rear == same pointer
             self->front= self->front->next;
         else
@@ -103,7 +113,8 @@ void *dequeue(queue_t *self) {
             self->rear = NULL;
         }
     //}
+    item = node->item;
+    free(node);
     pthread_mutex_unlock(&self->lock);
-
-    return NULL;
+    return item;
 }
