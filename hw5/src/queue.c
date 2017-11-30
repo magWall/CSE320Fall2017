@@ -59,6 +59,7 @@ bool invalidate_queue(queue_t *self, item_destructor_f destroy_function) {
     }
     destroy_function(nodeToLoop->item);
     free(nodeToLoop); //last item where front == rear
+    self->invalid = true;
     pthread_mutex_unlock(&self->lock);
 
     return false;
