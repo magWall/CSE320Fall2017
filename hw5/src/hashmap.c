@@ -8,7 +8,7 @@
 
 hashmap_t *create_map(uint32_t capacity, hash_func_f hash_function, destructor_f destroy_function) {
    // hashmap_t* map = calloc(capacity, sizeof(map_node_t*));
-    if(capacity ==0)
+    if(capacity ==0 || hash_function==NULL || destroy_function == NULL)
     {
         errno = EINVAL;
         return false;
@@ -28,11 +28,15 @@ hashmap_t *create_map(uint32_t capacity, hash_func_f hash_function, destructor_f
         unix_error("Invalid pthread_mutex init fields lock");
         return NULL;
     }
+
+    //may need to lock this for updating fields?
     map->nodes = calloc(capacity, sizeof(map_node_t));
     if(map->nodes == NULL)
     {
         return NULL;
     }
+    map->capacity = capacity;
+    //map->size = ???
     map->hash_function = hash_function;
     map->destroy_function = destroy_function;
 
@@ -67,6 +71,13 @@ map_val_t get(hashmap_t *self, map_key_t key) {
         errno = EINVAL;
         return MAP_VAL(NULL,0);
     }
+    //lock for reading
+    self->num_readers++;
+    int idx = get_index(self, key);
+
+
+    self->num_readers--;
+    //unlock
 
     return MAP_VAL(NULL, 0);
 }
