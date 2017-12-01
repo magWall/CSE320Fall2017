@@ -28,9 +28,15 @@ queue_t *create_queue(void) {
     if(newQueue == NULL) //won't be able to access pointer if NULL
         return NULL;
     if( sem_init(&(newQueue->items),0,0) <0) //initalize to 0 for 0 items
+    {
         unix_error("semaphore init error");
+        return NULL;
+    }
     if( pthread_mutex_init(&(newQueue->lock),NULL) <0)
+    {
         unix_error("pthread_mutex_init error"); //lock, attr
+        return NULL;
+    }
 
     return newQueue;
 }
@@ -60,6 +66,8 @@ bool invalidate_queue(queue_t *self, item_destructor_f destroy_function) {
     destroy_function(nodeToLoop->item);
     free(nodeToLoop); //last item where front == rear
     self->invalid = true;
+    // self->front = NULL;
+    // self->rear = NULL;
     pthread_mutex_unlock(&self->lock);
 
     return false;
