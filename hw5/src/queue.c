@@ -64,8 +64,11 @@ bool invalidate_queue(queue_t *self, item_destructor_f destroy_function) {
         nodeToLoop = nodeToLoop->next;
         free(tmp);
     }
-    destroy_function(nodeToLoop->item);
-    free(nodeToLoop); //last item where front == rear
+    if(nodeToLoop == self->rear && nodeToLoop !=NULL)
+    {
+        destroy_function(nodeToLoop->item);
+        free(nodeToLoop); //last item where front == rear
+    }
     self->invalid = true;
     // self->front = NULL;
     // self->rear = NULL;
