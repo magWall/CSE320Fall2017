@@ -179,11 +179,26 @@ map_val_t get(hashmap_t *self, map_key_t key) {
     pthread_mutex_unlock(&self->fields_lock);
 
     /*critical sections */
-    int idx = get_index(self, key);
-    if( (self->nodes+idx) ->key.key_base ==key.key_base &&
-        (self->nodes+idx) ->key.key_len ==key.key_len )
+//    bool flagKeyFound = false;
+    for(int i=0;i<self->capacity;i++)
     {
-        //may need to linear probe?
+        if( (self->nodes+i)->key.key_base != NULL)
+        {
+            if( (self->nodes+i) ->key.key_len ==key.key_len &&
+                memcmp((self->nodes+i) ->key.key_base, key.key_base, key.key_len)==0 )
+            {
+                pthread_mutex_lock(&self->fields_lock);
+                self->num_readers--;
+                if(self->num_readers==0)
+                    pthread_mutex_unlock(&self->write_lock);
+                pthread_mutex_unlock(&self->fields_lock);
+                return MAP_VAL((self->nodes+i) ->val.val_base,(self->nodes+i) ->val.val_len);
+            }
+        }
+        else if( (self->nodes+i)->tombstone !=true)
+        {
+            break;//no more elements in list, if tombstone true, continue loop
+        }
     }
 
     /*critical sections  done*/
@@ -193,6 +208,7 @@ map_val_t get(hashmap_t *self, map_key_t key) {
         pthread_mutex_unlock(&self->write_lock);
     pthread_mutex_unlock(&self->fields_lock);
     //unlock
+    //cannot find instance if up to this point
 
     return MAP_VAL(NULL, 0);
 }
