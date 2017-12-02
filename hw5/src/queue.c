@@ -52,6 +52,7 @@ bool invalidate_queue(queue_t *self, item_destructor_f destroy_function) {
     if(self->invalid == true)
     {
         errno =EINVAL;
+        pthread_mutex_unlock(&self->lock);
         return false;
     }
 
@@ -85,6 +86,7 @@ bool enqueue(queue_t *self, void *item) {
     if(self->invalid == true)
     {
         errno = EINVAL;
+        pthread_mutex_unlock(&self->lock);
         return false;
     }
 
@@ -131,6 +133,7 @@ void *dequeue(queue_t *self) {
     if(self->invalid == true)
     {
         errno = EINVAL;
+        pthread_mutex_unlock(&self->lock);
         return false;
     }
     P(&self->items); //this checks count
