@@ -137,7 +137,7 @@ bool put(hashmap_t *self, map_key_t key, map_val_t val, bool force) {
                     (self->nodes+i)->val = val;
                     (self->nodes+i)->key = key;
                     self->size++;
-                    (self->nodes+i)->tombstone = true;
+                    (self->nodes+i)->tombstone = false;
                     flagKeyAdded=true;
                     break;
                 }
@@ -145,6 +145,7 @@ bool put(hashmap_t *self, map_key_t key, map_val_t val, bool force) {
                 {
                     (self->nodes+i)->val = val;
                     (self->nodes+i)->key = key;
+                    (self->nodes+i)->tombstone = false;
                     self->size++;
                     flagKeyAdded=true;
                     break;
@@ -249,6 +250,7 @@ map_node_t delete(hashmap_t *self, map_key_t key) {
                 (self->nodes+i)->key= MAP_KEY(NULL,0);
                 (self->nodes+i)->val = MAP_VAL(NULL,0);
                 (self->nodes+i)->tombstone =true;
+                self->size--;
                 pthread_mutex_unlock(&self->write_lock);
                 return MAP_NODE(tmpKey,tmpVal,false);
             }
@@ -270,11 +272,64 @@ bool clear_map(hashmap_t *self) {
         errno = EINVAL;
         return false;
     }
+    pthread_mutex_lock(&self->write_lock);
+    if(self->invalid == true)
+    {
+        errno = EINVAL;
+        pthread_mutex_unlock(&self->write_lock);
+        return false;
+    }
     //set size to 0
-    //this is write
-	return false;
+    for(int i=0;i<self->capacity;i++)
+    {
+        if( (self->nodes+i)->key.key_base != NULL && (self->nodes+i)->tombstone==false)
+        {
+            //only on items NOT NULL, because NULL + false tombstone = unused entries in the beginning
+            if( (self->nodes+i) ->key.key_base!=NULL )
+            {
+                self->destroy_function( (self->nodes+i)->key, (self->nodes+i)->val);
+            }
+        }
+        // if tombstone == true || NULL
+        //do nothing
+    }
+    self->size=0;
+    pthread_mutex_unlock(&self->write_lock);
+
+	return true;
 }
 
 bool invalidate_map(hashmap_t *self) {
-    return false;
+    if(self == NULL)
+    {
+        errno = EINVAL;
+        return false;
+    }
+    pthread_mutex_lock(&self->write_lock);
+    if(self->invalid == true)
+    {
+        errno = EINVAL; //prevent double free
+        pthread_mutex_unlock(&self->write_lock);
+        return false;
+    }
+
+    for(int i=0;i<self->capacity;i++)
+    {
+        if( (self->nodes+i)->key.key_base != NULL && (self->nodes+i)->tombstone==false)
+        {
+            //only on items NOT NULL, because NULL + false tombstone = unused entries in the beginning
+            if( (self->nodes+i) ->key.key_base!=NULL )
+            {
+                self->destroy_function( (self->nodes+i)->key, (self->nodes+i)->val);
+            }
+        }
+        // if tombstone == true || NULL
+        //do nothing
+    }
+    self->size=0;
+
+    self->invalid=true;
+    free(self->nodes);
+    pthread_mutex_unlock(&self->write_lock);
+    return true;
 }
