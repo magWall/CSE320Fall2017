@@ -64,9 +64,8 @@ bool put(hashmap_t *self, map_key_t key, map_val_t val, bool force) {
 
     if(self->size == self->capacity && force == false)
     {
-
-        pthread_mutex_unlock(&self->write_lock);
         errno = ENOMEM;
+        pthread_mutex_unlock(&self->write_lock);
         return false;
     }
 
@@ -77,22 +76,28 @@ bool put(hashmap_t *self, map_key_t key, map_val_t val, bool force) {
         // loop to check existing key,
         for(int i=0;i<self->capacity;i++)
         {
-            if( (self->nodes +i)->key.key_base!=NULL) //if not null compare values
+            if((self->nodes +i)->key.key_len == key.key_len &&
+                memcmp(key.key_base,(self->nodes +i)->key.key_base,key.key_len))
             {
-                if(key.key_base == (self->nodes +i)->key.key_base &&
-                    (self->nodes +i)->key.key_len == key.key_len)
-                {
                     //if the same key, overwrite
                     self->destroy_function((self->nodes +i)->key,(self->nodes +i)->val);
                     (self->nodes+i)->val = val;
                     (self->nodes+i)->key = key;
                     self->size++;
                     flagKeyAdded=true;
-                }
+                    break;
             }
+
         }
         //if not same key, then overwrite index
-
+        if(flagKeyAdded==false)
+        {
+            int idx= get_index(self, key);
+            self->destroy_function((self->nodes +idx)->key,(self->nodes +idx)->val);
+            (self->nodes +idx)->key = key;
+            (self->nodes +idx)->val = val;
+            flagKeyAdded=true;
+        }
 
     }
 
@@ -157,7 +162,7 @@ bool put(hashmap_t *self, map_key_t key, map_val_t val, bool force) {
 
     pthread_mutex_unlock(&self->write_lock);
     //unlock
-    return false;
+    return true;
 }
 
 map_val_t get(hashmap_t *self, map_key_t key) {
