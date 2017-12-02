@@ -77,7 +77,7 @@ bool put(hashmap_t *self, map_key_t key, map_val_t val, bool force) {
         for(int i=0;i<self->capacity;i++)
         {
             if((self->nodes +i)->key.key_len == key.key_len &&
-                memcmp(key.key_base,(self->nodes +i)->key.key_base,key.key_len))
+                memcmp(key.key_base,(self->nodes +i)->key.key_base,key.key_len)==0)
             {
                     //if the same key, overwrite
                     self->destroy_function((self->nodes +i)->key,(self->nodes +i)->val);
