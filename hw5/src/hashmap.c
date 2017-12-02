@@ -225,7 +225,42 @@ map_val_t get(hashmap_t *self, map_key_t key) {
 
 map_node_t delete(hashmap_t *self, map_key_t key) {
     //writing lock
+    if(self== NULL || key.key_base == NULL || key.key_len ==0)
+    {
+        errno = EINVAL;
+        return MAP_NODE(MAP_KEY(NULL, 0), MAP_VAL(NULL, 0), false);
+    }
+    pthread_mutex_lock(&self->write_lock);
+    if(self->invalid ==true)
+    {
+        errno = EINVAL;
+        pthread_mutex_unlock(&self->write_lock);
+        return MAP_NODE(MAP_KEY(NULL, 0), MAP_VAL(NULL, 0), false);
+    }
+    for(int i=0;i<self->capacity;i++)
+    {
+        if( (self->nodes+i)->key.key_base != NULL)
+        {
+            if( (self->nodes+i) ->key.key_len ==key.key_len &&
+                memcmp((self->nodes+i) ->key.key_base, key.key_base, key.key_len)==0 )
+            {
+                map_val_t tmpVal = (self->nodes+i)->val;
+                map_key_t tmpKey = (self->nodes+i)->key;
+                (self->nodes+i)->key= MAP_KEY(NULL,0);
+                (self->nodes+i)->val = MAP_VAL(NULL,0);
+                (self->nodes+i)->tombstone =true;
+                pthread_mutex_unlock(&self->write_lock);
+                return MAP_NODE(tmpKey,tmpVal,false);
+            }
+        }
+        else if( (self->nodes+i)->tombstone !=true)
+        {
+            break;//no more elements in list, if tombstone true, continue loop
+        }
+    }
 
+
+    pthread_mutex_unlock(&self->write_lock);
     return MAP_NODE(MAP_KEY(NULL, 0), MAP_VAL(NULL, 0), false);
 }
 
