@@ -178,6 +178,16 @@ map_val_t get(hashmap_t *self, map_key_t key) {
         pthread_mutex_lock(&self->write_lock);
     pthread_mutex_unlock(&self->fields_lock);
 
+    if(self->invalid ==true)
+    {
+        errno = EINVAL;
+        pthread_mutex_lock(&self->fields_lock);
+        self->num_readers--;
+        if(self->num_readers==0)
+            pthread_mutex_unlock(&self->write_lock);
+        pthread_mutex_unlock(&self->fields_lock);
+        return MAP_VAL(NULL,0);
+    }
     /*critical sections */
 //    bool flagKeyFound = false;
     for(int i=0;i<self->capacity;i++)
