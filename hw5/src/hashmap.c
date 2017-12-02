@@ -1,7 +1,7 @@
 #include "utils.h"
 #include "wrappers.h"
 #include "errno.h"
-
+#include "string.h"
 #define MAP_KEY(base, len) (map_key_t) {.key_base = base, .key_len = len}
 #define MAP_VAL(base, len) (map_val_t) {.val_base = base, .val_len = len}
 #define MAP_NODE(key_arg, val_arg, tombstone_arg) (map_node_t) {.key = key_arg, .val = val_arg, .tombstone = tombstone_arg}
@@ -51,38 +51,101 @@ bool put(hashmap_t *self, map_key_t key, map_val_t val, bool force) {
         errno = EINVAL;
         return false;
     }
-    //lock, read data
-    pthread_mutex_lock(&self->fields_lock);     //read
-    self->num_readers++;
-    if(self->num_readers==1)                    //block writing
-        pthread_mutex_lock(&self->write_lock);
-    pthread_mutex_unlock(&self->fields_lock);   //read unlock as reader decrement
+    //lock, writing data
+    pthread_mutex_lock(&self->write_lock);
 
     if(self->invalid ==true)
     {
         errno = EINVAL;
-        pthread_mutex_lock(&self->fields_lock); //read lock
-        self->num_readers--;                    //decrement
-        pthread_mutex_unlock(&self->fields_lock);   //read unlock
-        if(self->num_readers==0)                    //if no readers, unlock writer
-            pthread_mutex_unlock(&self->write_lock);
+        pthread_mutex_unlock(&self->write_lock);
         return false;
     }
     //check to see if hashmap.invalid is true, if it is, einval and return null
 
     if(self->size == self->capacity && force == false)
     {
-        pthread_mutex_lock(&self->fields_lock);
-        self->num_readers--;
-        pthread_mutex_unlock(&self->fields_lock);
-        if(self->num_readers==0)
-            pthread_mutex_unlock(&self->write_lock);
+
+        pthread_mutex_unlock(&self->write_lock);
         errno = ENOMEM;
         return false;
     }
-    if(self->size < self->capacity) //if size is less
-    {// loop to check existing key, if not, add key
 
+    bool flagKeyAdded = false;
+
+    if(self->size == self->capacity && force == true)
+    {
+        // loop to check existing key,
+        for(int i=0;i<self->capacity;i++)
+        {
+            if( (self->nodes +i)->key.key_base!=NULL) //if not null compare values
+            {
+                if(key.key_base == (self->nodes +i)->key.key_base &&
+                    (self->nodes +i)->key.key_len == key.key_len)
+                {
+                    //if the same key, overwrite
+                    self->destroy_function((self->nodes +i)->key,(self->nodes +i)->val);
+                    (self->nodes+i)->val = val;
+                    (self->nodes+i)->key = key;
+                    self->size++;
+                    flagKeyAdded=true;
+                }
+            }
+        }
+        //if not same key, then overwrite index
+
+
+    }
+
+
+    if(self->size < self->capacity) //if size is less
+    {// loop to check existing key,
+        for(int i=0;i<self->capacity;i++)
+        {
+            if( (self->nodes +i)->key.key_base!=NULL) //if not null compare values
+            {
+                if( (self->nodes +i)->key.key_len == key.key_len &&
+                    memcmp(key.key_base,(self->nodes +i)->key.key_base,key.key_len)==0)
+                {
+                    //if the same key, overwrite
+                    self->destroy_function((self->nodes +i)->key,(self->nodes +i)->val);
+                    (self->nodes+i)->val = val;
+                    (self->nodes+i)->key = key;
+                    self->size++;
+                    flagKeyAdded=true;
+                }
+            }
+            else if((self->nodes +i)->tombstone!=true)//if null, check if tombstone
+            {
+                //if not tombstone, then break loop as rest are empty
+                //if is tombstone, do nothing and continue loop
+                break;
+            }
+        }
+        //if not, add key to first tombstone or empty node
+        if(flagKeyAdded==false)
+        {
+
+            for(int i=0;i<self->capacity;i++)
+            {
+                if( (self->nodes + i)->tombstone == true)
+                {
+                    (self->nodes+i)->val = val;
+                    (self->nodes+i)->key = key;
+                    self->size++;
+                    (self->nodes+i)->tombstone = true;
+                    flagKeyAdded=true;
+                    break;
+                }
+                else if((self->nodes +i)->key.key_base == NULL)
+                {
+                    (self->nodes+i)->val = val;
+                    (self->nodes+i)->key = key;
+                    self->size++;
+                    flagKeyAdded=true;
+                    break;
+                }
+            }
+        }
     }
     // if map full & force false, errno  enomem and return false
     //force flag ignore if map not full
@@ -92,7 +155,7 @@ bool put(hashmap_t *self, map_key_t key, map_val_t val, bool force) {
     //if map full and force true, overwrite given index, return true
     //if node evicted, destroy_funct on evicted node
 
-    pthread_mutex_unlock(&self->fields_lock);
+    pthread_mutex_unlock(&self->write_lock);
     //unlock
     return false;
 }
@@ -106,6 +169,11 @@ map_val_t get(hashmap_t *self, map_key_t key) {
     //lock for reading
     pthread_mutex_lock(&self->fields_lock);
     self->num_readers++;
+    if(self->num_readers==1)
+        pthread_mutex_lock(&self->write_lock);
+    pthread_mutex_unlock(&self->fields_lock);
+
+    /*critical sections */
     int idx = get_index(self, key);
     if( (self->nodes+idx) ->key.key_base ==key.key_base &&
         (self->nodes+idx) ->key.key_len ==key.key_len )
@@ -113,8 +181,11 @@ map_val_t get(hashmap_t *self, map_key_t key) {
         //may need to linear probe?
     }
 
+    /*critical sections  done*/
+    pthread_mutex_lock(&self->fields_lock);
     self->num_readers--;
-
+    if(self->num_readers==0)
+        pthread_mutex_unlock(&self->write_lock);
     pthread_mutex_unlock(&self->fields_lock);
     //unlock
 
@@ -122,6 +193,8 @@ map_val_t get(hashmap_t *self, map_key_t key) {
 }
 
 map_node_t delete(hashmap_t *self, map_key_t key) {
+    //writing lock
+
     return MAP_NODE(MAP_KEY(NULL, 0), MAP_VAL(NULL, 0), false);
 }
 
@@ -131,7 +204,8 @@ bool clear_map(hashmap_t *self) {
         errno = EINVAL;
         return false;
     }
-
+    //set size to 0
+    //this is write
 	return false;
 }
 
