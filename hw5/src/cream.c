@@ -7,7 +7,7 @@
 #include "stdio.h"
 #include "utils.h"
 #include "string.h"
-//#include "csapp.h"
+#include "csapp.h"
 
 queue_t *global_queue;
 hashmap_t *global_map;
@@ -39,8 +39,6 @@ void *thread_put(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
-    //pthread_t tid;
-    //socklen_t clientlen;
     for(int i=0;i<argc;i++)
     {
         if(strcmp((argv[i]) ,"-h")==0 )
@@ -60,10 +58,15 @@ int main(int argc, char *argv[]) {
                 "MAX_ENTRIES        The maximum number of entries that can be stored in `cream`'s underlying data store.\n");
         return EXIT_FAILURE;
     }
-//    int workerThreads = atoi(argv[1]); //num_workers
-//    int port_number = atoi(argv[2]);
-//    int max_entries = atoi(argv[3]);
+    pthread_t tid;
+    socklen_t clientlen;
 
+    int i, listenfd, connfd;
+    int workerThreads = atoi(argv[1]); //num_workers
+    int port_number = atoi(argv[2]);
+    int max_entries = atoi(argv[3]);
+    map_init(max_entries);
+    listenfd = Open_listenfd(argv[2]);
     //for
 
     /* test code */
