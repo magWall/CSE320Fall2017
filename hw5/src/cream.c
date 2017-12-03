@@ -7,10 +7,11 @@
 #include "stdio.h"
 #include "utils.h"
 #include "string.h"
+//#include "csapp.h"
 
 queue_t *global_queue;
 hashmap_t *global_map;
-#define NUM_THREADS 100
+
 void *thread_enqueue(void *arg) {
     enqueue(global_queue, arg);
     return NULL;
@@ -20,34 +21,14 @@ typedef struct map_insert_t {
     void *val_ptr;
 } map_insert_t;
 
-uint32_t jenkins_hash(map_key_t map_key) {
-    const uint8_t *key = map_key.key_base;
-    size_t length = map_key.key_len;
-    size_t i = 0;
-    uint32_t hash = 0;
 
-    while (i != length) {
-        hash += key[i++];
-        hash += hash << 10;
-        hash ^= hash >> 6;
-    }
-
-    hash += hash << 3;
-    hash ^= hash >> 11;
-    hash += hash << 15;
-    return hash;
-}
-int totalGlobalCount = 0;
-uint32_t test_hash(map_key_t map_key){
-    return totalGlobalCount++;
-}
 /* Used in item destruction */
 void map_free_function(map_key_t key, map_val_t val) {
     free(key.key_base);
     free(val.val_base);
 }
-void map_init(void) {
-    global_map = create_map(NUM_THREADS, test_hash, map_free_function);
+void map_init(int max_entries) {
+    global_map = create_map(max_entries, jenkins_one_at_a_time_hash, map_free_function);
 }
 
 void *thread_put(void *arg) {
@@ -58,7 +39,8 @@ void *thread_put(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
-
+    //pthread_t tid;
+    //socklen_t clientlen;
     for(int i=0;i<argc;i++)
     {
         if(strcmp((argv[i]) ,"-h")==0 )
@@ -78,6 +60,12 @@ int main(int argc, char *argv[]) {
                 "MAX_ENTRIES        The maximum number of entries that can be stored in `cream`'s underlying data store.\n");
         return EXIT_FAILURE;
     }
+//    int workerThreads = atoi(argv[1]); //num_workers
+//    int port_number = atoi(argv[2]);
+//    int max_entries = atoi(argv[3]);
+
+    //for
+
     /* test code */
     // global_queue = create_queue();
     // int NUM_THREADS = 100;
