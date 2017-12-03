@@ -83,7 +83,6 @@ bool put(hashmap_t *self, map_key_t key, map_val_t val, bool force) {
                     self->destroy_function((self->nodes +i)->key,(self->nodes +i)->val);
                     (self->nodes+i)->val = val;
                     (self->nodes+i)->key = key;
-                    self->size++;
                     flagKeyAdded=true;
                     break;
             }
@@ -288,6 +287,8 @@ bool clear_map(hashmap_t *self) {
             if( (self->nodes+i) ->key.key_base!=NULL )
             {
                 self->destroy_function( (self->nodes+i)->key, (self->nodes+i)->val);
+                //set the map as empty now, tombstone them
+                (self->nodes+i)->tombstone = true;
             }
         }
         // if tombstone == true || NULL
