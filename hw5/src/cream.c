@@ -37,13 +37,24 @@ void *thread_put(void *arg) {
     put(global_map, MAP_KEY(insert->key_ptr, sizeof(int)), MAP_VAL(insert->val_ptr, sizeof(int)), false);
     return NULL;
 }
+void *thread_function(void *vargp)
+{
+    while(1) //infinite loop always true
+    {
+        //do something
+       // void* connfd = dequeue(global_queue);
+        //do something to fd like access, then echo data
+       // echo_cnt(connfd);
+
+    }
+}
 
 int main(int argc, char *argv[]) {
     for(int i=0;i<argc;i++)
     {
         if(strcmp((argv[i]) ,"-h")==0 )
         {
-            printf("-h                 Displays this help menu and returns EXIT_SUCCESS.\n"
+            fprintf(stdout,"-h                 Displays this help menu and returns EXIT_SUCCESS.\n"
                 "NUM_WORKERS        The number of worker threads used to service requests.\n"
                 "PORT_NUMBER        Port number to listen on for incoming connections.\n"
                 "MAX_ENTRIES        The maximum number of entries that can be stored in `cream`'s underlying data store.\n");
@@ -52,7 +63,7 @@ int main(int argc, char *argv[]) {
     }
     if(argc !=4) //3 required args, 1 for ./cream
     {
-        printf("-h                 Displays this help menu and returns EXIT_SUCCESS.\n"
+        fprintf(stderr,"-h                 Displays this help menu and returns EXIT_SUCCESS.\n"
                 "NUM_WORKERS        The number of worker threads used to service requests.\n"
                 "PORT_NUMBER        Port number to listen on for incoming connections.\n"
                 "MAX_ENTRIES        The maximum number of entries that can be stored in `cream`'s underlying data store.\n");
@@ -60,13 +71,28 @@ int main(int argc, char *argv[]) {
     }
     pthread_t tid;
     socklen_t clientlen;
-
-    int i, listenfd, connfd;
+    struct sockaddr_storage clientaddr;
+    int i, listenfd, connfd; //connfd is file descriptor, fd is an int
     int workerThreads = atoi(argv[1]); //num_workers
-    int port_number = atoi(argv[2]);
+    //int port_number = atoi(argv[2]);
     int max_entries = atoi(argv[3]);
-    map_init(max_entries);
+    map_init(max_entries); //create hashmap + queue
+    global_queue = create_queue();
+
+    //spawn worker threads
+    for (i=0;i<workerThreads;i++)
+    {
+        Pthread_create(&tid,NULL,thread_function,NULL); //threads will run funct when dequeue avail
+    }
+
     listenfd = Open_listenfd(argv[2]);
+
+    while(1)
+    {
+        clientlen = sizeof(struct sockaddr_storage);
+        connfd = Accept(listenfd, (SA*) &clientaddr, &clientlen);//accept fd
+        enqueue(global_queue, &connfd);//accepts void pointer, pass by reference on fd
+    }
     //for
 
     /* test code */
