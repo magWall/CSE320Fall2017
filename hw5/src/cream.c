@@ -42,20 +42,20 @@ void *thread_function(void *vargp)
     while(1) //infinite loop always true
     {
         //do something
-         fprintf(stdout,"beforeconnfd\n");
+     //    fprintf(stdout,"beforeconnfd\n");
         int connfd = *( (int*) dequeue(global_queue) );
         //do something to fd like access, then echo data
        // echo_cnt(connfd);
         // rio_t rio;
         // Rio_readinitb(&rio,connfd);
-         fprintf(stdout,"dequeued\n");
-        request_header_t* req_buffer = calloc(1,sizeof(request_header_t));  // THIS IS HEADER FOR REQ CODE, KEY SIZE, VALUE SiZE
-        Rio_readn(connfd, req_buffer, sizeof(request_header_t));
-        int request_code = req_buffer->request_code;
-        int key_size = req_buffer->key_size;
-        int value_size = req_buffer->value_size;
-        response_header_t* responseHdr = calloc(1,sizeof(request_header_t));
-        fprintf(stdout,"responseheader\n");
+    //     fprintf(stdout,"dequeued\n");
+        request_header_t req_buffer;  // THIS IS HEADER FOR REQ CODE, KEY SIZE, VALUE SiZE
+        Rio_readn(connfd, &req_buffer, sizeof(request_header_t));
+        int request_code = req_buffer.request_code;
+        int key_size = req_buffer.key_size;
+        int value_size = req_buffer.value_size;
+        response_header_t responseHdr;
+    //    fprintf(stdout,"responseheader\n");
 
         if(request_code == PUT)
         {
@@ -65,9 +65,9 @@ void *thread_function(void *vargp)
                 //send invalid response
                 //response_codes { OK = 200, UNSUPPORTED = 220,
                 //BAD_REQUEST = 400, NOT_FOUND = 404 } response_codes;
-                responseHdr->response_code = BAD_REQUEST;
-                responseHdr->value_size = 0;
-                Rio_writen(connfd, responseHdr, sizeof(response_header_t));
+                responseHdr.response_code = BAD_REQUEST;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
                 close(connfd);
                 //send
             }
@@ -84,9 +84,9 @@ void *thread_function(void *vargp)
                 if(put(global_map, key, val, true)==true  )
                 //no indication when not to force on spec sheet
                 {
-                    responseHdr->response_code = OK;
-                    responseHdr->value_size = value_size;
-                    Rio_writen(connfd,responseHdr,sizeof(response_header_t));
+                    responseHdr.response_code = OK;
+                    responseHdr.value_size = value_size;
+                    Rio_writen(connfd,&responseHdr,sizeof(response_header_t));
                     close(connfd);
                 }
                 else //put statement failed
@@ -94,9 +94,9 @@ void *thread_function(void *vargp)
                     //free
                     free(key.key_base);
                     free(val.val_base);
-                    responseHdr->response_code = BAD_REQUEST;
-                    responseHdr->value_size = 0;
-                    Rio_writen(connfd,responseHdr,sizeof(response_header_t));
+                    responseHdr.response_code = BAD_REQUEST;
+                    responseHdr.value_size = 0;
+                    Rio_writen(connfd,&responseHdr,sizeof(response_header_t));
                     close(connfd);
                 }
             }
@@ -106,8 +106,8 @@ void *thread_function(void *vargp)
         {
             if(key_size < MIN_KEY_SIZE || key_size >MAX_KEY_SIZE)
              {
-                responseHdr->response_code = BAD_REQUEST;
-                responseHdr->value_size = 0;
+                responseHdr.response_code = BAD_REQUEST;
+                responseHdr.value_size = 0;
                 Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
                 close(connfd);
                 //send
@@ -122,17 +122,17 @@ void *thread_function(void *vargp)
                 if(result.val_base ==NULL && result.val_len ==0)
                 {
                     //not found
-                    responseHdr->response_code = NOT_FOUND;
-                    responseHdr->value_size = 0;
-                    Rio_writen(connfd,responseHdr,sizeof(response_header_t));
+                    responseHdr.response_code = NOT_FOUND;
+                    responseHdr.value_size = 0;
+                    Rio_writen(connfd,&responseHdr,sizeof(response_header_t));
                     close(connfd);
                 }
                 else
                 {
                     //success
-                    responseHdr->response_code = OK;
-                    responseHdr->value_size = result.val_len;
-                    Rio_writen(connfd,responseHdr,sizeof(response_header_t));
+                    responseHdr.response_code = OK;
+                    responseHdr.value_size = result.val_len;
+                    Rio_writen(connfd,&responseHdr,sizeof(response_header_t));
                     Rio_writen(connfd,result.val_base, sizeof(result.val_len));
                     close(connfd);
 
@@ -143,9 +143,9 @@ void *thread_function(void *vargp)
         {
              if(key_size < MIN_KEY_SIZE || key_size >MAX_KEY_SIZE)
              {
-                responseHdr->response_code = BAD_REQUEST;
-                responseHdr->value_size = 0;
-                Rio_writen(connfd, responseHdr, sizeof(response_header_t));
+                responseHdr.response_code = BAD_REQUEST;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
                 close(connfd);
                 //send
              }
@@ -160,9 +160,9 @@ void *thread_function(void *vargp)
                 //free node
                 free(key.key_base);
                 free(result.val.val_base);
-                responseHdr->response_code = OK;
-                responseHdr->value_size = 0;
-                Rio_writen(connfd, responseHdr, sizeof(response_header_t));
+                responseHdr.response_code = OK;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
                 close(connfd);
 
              }
@@ -172,18 +172,18 @@ void *thread_function(void *vargp)
             if(clear_map(global_map) ==true) //clears map here
             {
                 //cleared, send ok
-                responseHdr->response_code = OK;
-                responseHdr->value_size = 0;
-                Rio_writen(connfd, responseHdr, sizeof(response_header_t));
+                responseHdr.response_code = OK;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
                 close(connfd);
 
                 //send
             }
             else //clear map didn't work bcz invalid map? probably won't happen
             {
-                responseHdr->response_code = BAD_REQUEST;
-                responseHdr->value_size = 0;
-                Rio_writen(connfd, responseHdr, sizeof(response_header_t));
+                responseHdr.response_code = BAD_REQUEST;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
                 close(connfd);
                 //send
             }
@@ -191,9 +191,9 @@ void *thread_function(void *vargp)
         else //error, invalid request code
         {
             //send invalid response
-            responseHdr->response_code = UNSUPPORTED;
-            responseHdr->value_size = 0;
-            Rio_writen(connfd, responseHdr, sizeof(response_header_t));
+            responseHdr.response_code = UNSUPPORTED;
+            responseHdr.value_size = 0;
+            Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
             close(connfd);
             //send
         }
@@ -243,11 +243,11 @@ int main(int argc, char *argv[]) {
     while(1)
     {
         clientlen = sizeof(struct sockaddr_storage);
-         fprintf(stdout,"accepting...\n");
+     //    fprintf(stdout,"accepting...\n");
         connfd = Accept(listenfd, (SA*) &clientaddr, &clientlen);//accept fd
-         fprintf(stdout,"accepted, enqueueing\n");
+       //  fprintf(stdout,"accepted, enqueueing\n");
         enqueue(global_queue, &connfd);//accepts void pointer, pass by reference on fd
-         fprintf(stdout,"enqueued\n");
+        // fprintf(stdout,"enqueued\n");
     }
     //for
 
