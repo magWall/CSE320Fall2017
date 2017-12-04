@@ -1,7 +1,9 @@
 #include "utils.h"
-#include "wrappers.h"
 #include "errno.h"
 #include "string.h"
+#include "csapp.h"
+#include <stdlib.h>
+#include <stdio.h>
 #define MAP_KEY(base, len) (map_key_t) {.key_base = base, .key_len = len}
 #define MAP_VAL(base, len) (map_val_t) {.val_base = base, .val_len = len}
 #define MAP_NODE(key_arg, val_arg, tombstone_arg) (map_node_t) {.key = key_arg, .val = val_arg, .tombstone = tombstone_arg}
