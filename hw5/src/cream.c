@@ -52,7 +52,6 @@ void *thread_function(void *vargp)
         int request_code = req_buffer.request_code;
         int key_size = req_buffer.key_size;
         int value_size = req_buffer.value_size;
-
         response_header_t responseHdr;
 
         if(request_code == PUT)
@@ -225,7 +224,7 @@ int main(int argc, char *argv[]) {
     struct sockaddr_storage clientaddr;
     int i, listenfd, connfd; //connfd is file descriptor, fd is an int
     int workerThreads = atoi(argv[1]); //num_workers
-    //int port_number = atoi(argv[2]);
+    //int Portt_number = atoi(argv[2]);
     int max_entries = atoi(argv[3]);
     map_init(max_entries); //create hashmap + queue
     global_queue = create_queue();
@@ -235,7 +234,6 @@ int main(int argc, char *argv[]) {
     {
         Pthread_create(&tid,NULL,thread_function,NULL); //threads will run funct when dequeue avail
     }
-
     listenfd = Open_listenfd(argv[2]);
 
     while(1)

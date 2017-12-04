@@ -138,8 +138,15 @@ void *dequeue(queue_t *self) {
     {
         errno = EINVAL;
         pthread_mutex_unlock(&self->lock);
-        return false;
+        return NULL;
     }
+     // int num = -1;
+     // sem_getvalue(&self->items,&num);
+     // if(num<=0)
+     // {
+     //     pthread_mutex_unlock(&self->lock);
+     //     return NULL;
+     // }
     Psem(&self->items); //this checks count
     //if(self->front != NULL)
     //{
