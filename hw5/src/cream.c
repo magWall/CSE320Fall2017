@@ -129,7 +129,7 @@ void *thread_function(void *vargp)
                 {
                     //success
                     responseHdr.response_code = OK;
-                    responseHdr.value_size = 0;
+                    responseHdr.value_size = result.val_len;
                     Rio_writen(connfd,&responseHdr,sizeof(response_header_t));
                     Rio_writen(connfd,result.val_base, sizeof(result.val_len));
                     close(connfd);
