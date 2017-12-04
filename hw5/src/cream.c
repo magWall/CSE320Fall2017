@@ -102,7 +102,40 @@ void *thread_function(void *vargp)
         }
         else if(request_code == GET)
         {
+            if(key_size < MIN_KEY_SIZE || key_size >MAX_KEY_SIZE)
+             {
+                responseHdr.response_code = BAD_REQUEST;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
+                close(connfd);
+                //send
+             }
+             else
+             {
+                map_key_t key;
+                key.key_base = calloc(1,sizeof(int*));
+                Rio_readn(connfd,key.key_base,key_size);
+                key.key_len = key_size;
+                map_val_t result = get(global_map, key);
+                if(result.val_base ==NULL && result.val_len ==0)
+                {
+                    //not found
+                    responseHdr.response_code = NOT_FOUND;
+                    responseHdr.value_size = 0;
+                    Rio_writen(connfd,&responseHdr,sizeof(response_header_t));
+                    close(connfd);
+                }
+                else
+                {
+                    //success
+                    responseHdr.response_code = OK;
+                    responseHdr.value_size = 0;
+                    Rio_writen(connfd,&responseHdr,sizeof(response_header_t));
+                    Rio_writen(connfd,result.val_base, sizeof(result.val_len));
+                    close(connfd);
 
+                }
+             }
         }
         else if(request_code == EVICT)
         {
