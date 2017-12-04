@@ -104,7 +104,6 @@ bool enqueue(queue_t *self, void *item) {
         self->rear = node;
         //add to queue
         Vsem(&self->items);
-        pthread_mutex_unlock(&self->lock);
         //unsem
     }
     else //not first item, replace rear with item, link prev. rear to new rear
@@ -117,11 +116,10 @@ bool enqueue(queue_t *self, void *item) {
         self->rear = node;
         //add to queue
         Vsem(&self->items);
-        pthread_mutex_unlock(&self->lock);
         //unsem
     }
     //unlock
-
+    pthread_mutex_unlock(&self->lock);
     return true;
 }
 
@@ -147,10 +145,12 @@ void *dequeue(queue_t *self) {
      //     pthread_mutex_unlock(&self->lock);
      //     return NULL;
      // }
+    pthread_mutex_unlock(&self->lock);
     Psem(&self->items); //this checks count
     //if(self->front != NULL)
     //{
     //last element where front and rear == same pointer
+    pthread_mutex_lock(&self->lock);
         node = self->front;
         if(self->front != self->rear)   //if not same, continue
             self->front= self->front->next;

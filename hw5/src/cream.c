@@ -42,17 +42,20 @@ void *thread_function(void *vargp)
     while(1) //infinite loop always true
     {
         //do something
+         fprintf(stdout,"beforeconnfd\n");
         int connfd = *( (int*) dequeue(global_queue) );
         //do something to fd like access, then echo data
        // echo_cnt(connfd);
         // rio_t rio;
         // Rio_readinitb(&rio,connfd);
+         fprintf(stdout,"dequeued\n");
         request_header_t* req_buffer = calloc(1,sizeof(request_header_t));  // THIS IS HEADER FOR REQ CODE, KEY SIZE, VALUE SiZE
         Rio_readn(connfd, req_buffer, sizeof(request_header_t));
         int request_code = req_buffer->request_code;
         int key_size = req_buffer->key_size;
         int value_size = req_buffer->value_size;
         response_header_t* responseHdr = calloc(1,sizeof(request_header_t));
+        fprintf(stdout,"responseheader\n");
 
         if(request_code == PUT)
         {
@@ -226,6 +229,7 @@ int main(int argc, char *argv[]) {
     int workerThreads = atoi(argv[1]); //num_workers
     //int Portt_number = atoi(argv[2]);
     int max_entries = atoi(argv[3]);
+    //fprintf(stdout,"%d %s %d \n", workerThreads, argv[2], max_entries);
     map_init(max_entries); //create hashmap + queue
     global_queue = create_queue();
 
@@ -239,8 +243,11 @@ int main(int argc, char *argv[]) {
     while(1)
     {
         clientlen = sizeof(struct sockaddr_storage);
+         fprintf(stdout,"accepting...\n");
         connfd = Accept(listenfd, (SA*) &clientaddr, &clientlen);//accept fd
+         fprintf(stdout,"accepted, enqueueing\n");
         enqueue(global_queue, &connfd);//accepts void pointer, pass by reference on fd
+         fprintf(stdout,"enqueued\n");
     }
     //for
 
