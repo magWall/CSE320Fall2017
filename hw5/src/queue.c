@@ -1,24 +1,25 @@
 #include "queue.h"
 #include "errno.h"
-#include "wrappers.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "csapp.h"
 
-
-void unix_error(char *msg)
-{
-    fprintf(stderr, "%s: %d\n", msg, errno);
-    exit(0);
-}
-void Sem_init(sem_t* t, int num, int num2) //probably used once, not needed[?]
-{
-    if( sem_init(t, num,num2) <0) //initalize to 0
-        unix_error("semaphore init error");
-}
-void P(sem_t* sem)
+// void unix_error(char *msg)
+// {
+//     fprintf(stderr, "%s: %d\n", msg, errno);
+//     exit(0);
+// }
+// void Sem_init(sem_t* t, int num, int num2) //probably used once, not needed[?]
+// {
+//     if( sem_init(t, num,num2) <0) //initalize to 0
+//         unix_error("semaphore init error");
+// }
+void Psem(sem_t* sem)
 {
     if( sem_wait(sem) < 0)
       unix_error("P error");
 }
-void V(sem_t* sem)
+void Vsem(sem_t* sem)
 {
     if( sem_post(sem) <0)
         unix_error("V error");
@@ -102,7 +103,7 @@ bool enqueue(queue_t *self, void *item) {
         self->front = node;
         self->rear = node;
         //add to queue
-        V(&self->items);
+        Vsem(&self->items);
         pthread_mutex_unlock(&self->lock);
         //unsem
     }
@@ -115,7 +116,7 @@ bool enqueue(queue_t *self, void *item) {
         self->rear->next = node;
         self->rear = node;
         //add to queue
-        V(&self->items);
+        Vsem(&self->items);
         pthread_mutex_unlock(&self->lock);
         //unsem
     }
@@ -139,7 +140,7 @@ void *dequeue(queue_t *self) {
         pthread_mutex_unlock(&self->lock);
         return false;
     }
-    P(&self->items); //this checks count
+    Psem(&self->items); //this checks count
     //if(self->front != NULL)
     //{
     //last element where front and rear == same pointer
