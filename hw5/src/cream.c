@@ -42,9 +42,127 @@ void *thread_function(void *vargp)
     while(1) //infinite loop always true
     {
         //do something
-       // void* connfd = dequeue(global_queue);
+        int connfd = *( (int*) dequeue(global_queue) );
         //do something to fd like access, then echo data
        // echo_cnt(connfd);
+        // rio_t rio;
+        // Rio_readinitb(&rio,connfd);
+        request_header_t req_buffer;  // THIS IS HEADER FOR REQ CODE, KEY SIZE, VALUE SiZE
+        Rio_readn(connfd, &req_buffer, sizeof(request_header_t));
+        int request_code = req_buffer.request_code;
+        int key_size = req_buffer.key_size;
+        int value_size = req_buffer.value_size;
+
+        response_header_t responseHdr;
+
+        if(request_code == PUT)
+        {
+            if(key_size < MIN_KEY_SIZE || key_size >MAX_KEY_SIZE ||
+            value_size < MIN_VALUE_SIZE || value_size >MAX_VALUE_SIZE )
+            {
+                //send invalid response
+                //response_codes { OK = 200, UNSUPPORTED = 220,
+                //BAD_REQUEST = 400, NOT_FOUND = 404 } response_codes;
+                responseHdr.response_code = BAD_REQUEST;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
+                close(connfd);
+                //send
+            }
+            else
+            {
+                map_key_t key;
+                key.key_base = calloc(1,sizeof(int*));
+                Rio_readn(connfd,key.key_base,key_size);
+                key.key_len = key_size;
+                map_val_t val;
+                val.val_base = calloc(1,sizeof(int*));
+                Rio_readn(connfd,val.val_base,value_size);
+                val.val_len = value_size;
+                if(put(global_map, key, val, true)==true  )
+                //no indication when not to force on spec sheet
+                {
+                    responseHdr.response_code = OK;
+                    responseHdr.value_size = value_size;
+                    Rio_writen(connfd,&responseHdr,sizeof(response_header_t));
+                    close(connfd);
+                }
+                else //put statement failed
+                {
+                    //free
+                    free(key.key_base);
+                    free(val.val_base);
+                    responseHdr.response_code = BAD_REQUEST;
+                    responseHdr.value_size = 0;
+                    Rio_writen(connfd,&responseHdr,sizeof(response_header_t));
+                    close(connfd);
+                }
+            }
+
+        }
+        else if(request_code == GET)
+        {
+
+        }
+        else if(request_code == EVICT)
+        {
+             if(key_size < MIN_KEY_SIZE || key_size >MAX_KEY_SIZE)
+             {
+                responseHdr.response_code = BAD_REQUEST;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
+                close(connfd);
+                //send
+             }
+             else
+             {
+                //accept delete
+                map_key_t key;
+                key.key_base = calloc(1,sizeof(int*));
+                Rio_readn(connfd,key.key_base,key_size);
+                key.key_len = key_size;
+                map_node_t result = delete(global_map,key);
+                //free node
+                free(key.key_base);
+                free(result.val.val_base);
+                responseHdr.response_code = OK;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
+                close(connfd);
+
+             }
+        }
+        else if(request_code == CLEAR)
+        {
+            if(clear_map(global_map) ==true) //clears map here
+            {
+                //cleared, send ok
+                responseHdr.response_code = OK;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
+                close(connfd);
+
+                //send
+            }
+            else //clear map didn't work bcz invalid map? probably won't happen
+            {
+                responseHdr.response_code = BAD_REQUEST;
+                responseHdr.value_size = 0;
+                Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
+                close(connfd);
+                //send
+            }
+        }
+        else //error, invalid request code
+        {
+            //send invalid response
+            responseHdr.response_code = UNSUPPORTED;
+            responseHdr.value_size = 0;
+            Rio_writen(connfd, &responseHdr, sizeof(response_header_t));
+            close(connfd);
+            //send
+        }
+
 
     }
 }
