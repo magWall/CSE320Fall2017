@@ -1,0 +1,10 @@
+[s[20;10HSomeText[uThe Shell
+These commands are built-in. Type 'help' to see this list. 
+cd [-] [.] [..] [dir]      ->change directory
+    - to go back to last directory
+    . in current directory
+   .. to go back one directory
+help        ->Displays this usage menu.
+pwd         ->Print working directory
+exit        ->Exits the Shell
+[s[20;10HSomeText[u
