@@ -51,10 +51,10 @@ int main(int argc, char *argv[], char* envp[]) {
 
         input = readline(newpathName);
 
-        write(1, "\e[s", strlen("\e[s"));
-        write(1, "\e[20;10H", strlen("\e[20;10H"));
-        write(1, "SomeText", strlen("SomeText"));
-        write(1, "\e[u", strlen("\e[u"));
+        // write(1, "\e[s", strlen("\e[s"));
+        // write(1, "\e[20;10H", strlen("\e[20;10H"));
+        // write(1, "SomeText", strlen("SomeText"));
+        // write(1, "\e[u", strlen("\e[u"));
 
         // If EOF is read (aka ^D) readline returns NULL
         if(input == NULL ||strlen(input)==0) {
